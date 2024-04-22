@@ -17,33 +17,32 @@
             <RowDefinition Height="32" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-
         <Border x:Name="AppTitleBar"
-                Background="{StaticResource SystemAccentColorLight3}"
-                VerticalAlignment="Top"
-                Height="32">
+            Background="{StaticResource SystemAccentColorLight3}"
+            VerticalAlignment="Top"
+            Height="32">
             <StackPanel Orientation="Horizontal"
-                        Margin="16 0 0 0">
+                    Margin="16 0 0 0">
                 <Image x:Name="AppFontIcon"
-                       HorizontalAlignment="Left" 
-                       VerticalAlignment="Center"
-                       Source="/Assets/WindowIcon.ico" 
-                       Width="16" 
-                       Height="16"/>
+                HorizontalAlignment="Left" 
+                VerticalAlignment="Center"
+                Source="Assets/Square44x44Logo.png" 
+                Width="16" 
+                Height="16"/>
                 <TextBlock x:Name="AppTitle"
-                           Text="uart"
-                           VerticalAlignment="Center"
-                           Margin="12,0,0,0"
-                           Style="{StaticResource CaptionTextBlockStyle}" />
+                Text="uart"
+                VerticalAlignment="Center"
+                Margin="12,0,0,0"
+                Style="{StaticResource CaptionTextBlockStyle}" />
             </StackPanel>
         </Border>
 
         <SplitView x:Name="sv"
-                   OpenPaneLength="256"
-                   DisplayMode="Overlay"
-                   IsPaneOpen="True"
-                   PaneBackground="{StaticResource SystemAccentColorLight3}"
-                   Grid.Row="1">
+               OpenPaneLength="256"
+               DisplayMode="Overlay"
+               IsPaneOpen="True"
+               PaneBackground="{StaticResource SystemAccentColorLight3}"
+               Grid.Row="1">
             <SplitView.Pane>
                 <Pivot>
                     <PivotItem>
@@ -51,50 +50,50 @@
                             <FontIcon Glyph="&#xE95F;" />
                         </PivotItem.Header>
                         <StackPanel Orientation="Vertical"
-                                    Padding="12 24 12 24">
+                        Padding="12 24 12 24">
                             <ComboBox x:Name="combobox_com"
-                                      ItemsSource="{x:Bind comInfos}"
-                                      DisplayMemberPath="Name"
-                                      Header="com"
-                                      PlaceholderText="none"
-                                      x:FieldModifier="public"
-                                      Margin="12 0 12 12"
-                                      HeaderTemplate="{StaticResource headerFont}" />
+                            ItemsSource="{x:Bind comInfos}"
+                            DisplayMemberPath="Name"
+                            Header="com"
+                            PlaceholderText="none"
+                            x:FieldModifier="public"
+                            Margin="12 0 12 12"
+                            HeaderTemplate="{StaticResource headerFont}" />
                             <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
                             <ComboBox IsEditable="True"
-                                      x:Name="combobox_baud"
-                                      SelectedIndex="1"
-                                      Header="baud"
-                                      Margin="12 12 12 12"
-                                      HeaderTemplate="{StaticResource headerFont}">
+                            x:Name="combobox_baud"
+                            SelectedIndex="1"
+                            Header="baud"
+                            Margin="12 12 12 12"
+                            HeaderTemplate="{StaticResource headerFont}">
                                 <x:Int32>115200</x:Int32>
                                 <x:Int32>1000000</x:Int32>
                             </ComboBox>
                             <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
                             <ComboBox x:Name="combobox_dataBits"
-                                      Header="data bits"
-                                      SelectedIndex="1"
-                                      Margin="12 12 12 12"
-                                      HeaderTemplate="{StaticResource headerFont}">
+                            Header="data bits"
+                            SelectedIndex="1"
+                            Margin="12 12 12 12"
+                            HeaderTemplate="{StaticResource headerFont}">
                                 <x:Int32>7</x:Int32>
                                 <x:Int32>8</x:Int32>
                             </ComboBox>
                             <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
                             <ComboBox x:Name="combobox_stopBits"
-                                      Header="stop bits"
-                                      SelectedIndex="0"
-                                      Margin="12 12 12 12"
-                                      HeaderTemplate="{StaticResource headerFont}" >
+                            Header="stop bits"
+                            SelectedIndex="0"
+                            Margin="12 12 12 12"
+                            HeaderTemplate="{StaticResource headerFont}" >
                                 <x:String>One</x:String>
                                 <x:String>OnePointFive</x:String>
                                 <x:String>Two</x:String>
                             </ComboBox>
                             <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
                             <ComboBox x:Name="combobox_parity"
-                                      Header="parity"
-                                      SelectedIndex="0"
-                                      Margin="12 12 12 12"
-                                      HeaderTemplate="{StaticResource headerFont}">
+                            Header="parity"
+                            SelectedIndex="0"
+                            Margin="12 12 12 12"
+                            HeaderTemplate="{StaticResource headerFont}">
                                 <x:String>None</x:String>
                                 <x:String>Odd</x:String>
                                 <x:String>Even</x:String>
@@ -109,20 +108,20 @@
                             <FontIcon Glyph="&#xE90F;" />
                         </PivotItem.Header>
                         <StackPanel Orientation="Vertical" Padding="12 24 12 24">
-                            <ToggleSwitch x:Name="ts_imageCollect" 
-                                          Header="连续采集图像" 
-                                          OffContent=""
-                                          IsOn="False" 
-                                          Toggled="toggle_imageCollectSw" 
-                                          HeaderTemplate="{StaticResource headerFont}"
-                                          Margin="12 0 12 0"/>
+                            <ToggleSwitch x:Name="ts_readData" 
+                                      Header="读取已有数据" 
+                                      OffContent=""
+                                      IsOn="False" 
+                                      Toggled="ts_readData_Toggled" 
+                                      HeaderTemplate="{StaticResource headerFont}"
+                                      Margin="12 0 12 0"/>
                             <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
                             <ComboBox IsEditable="True"
-                                      SelectedIndex="0"
-                                      Header="range"
-                                      Margin="12 12 12 12"
-                                      HeaderTemplate="{StaticResource headerFont}"
-                                      SelectionChanged="selectionChanged_rangeCb">
+                                  SelectedIndex="0"
+                                  Header="range"
+                                  Margin="12 12 12 12"
+                                  HeaderTemplate="{StaticResource headerFont}"
+                                  SelectionChanged="selectionChanged_rangeCb">
                                 <x:Int32>4095</x:Int32>
                                 <x:Int32>2048</x:Int32>
                                 <x:Int32>1024</x:Int32>
@@ -147,32 +146,33 @@
                     <RowDefinition Height="75" />
                 </Grid.RowDefinitions>
                 <Button Click="click_splitViewPaneBtn"
-                        Width="42"
-                        Height="42"
-                        Padding="0"
-                        Grid.Row="1"
-                        Grid.Column="0"
-                        VerticalAlignment="Top"
-                        HorizontalAlignment="Right"
-                        PointerEntered="pointerEntered_splitViewPaneBtn">
+                    Width="42"
+                    Height="42"
+                    Padding="0"
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Right"
+                    PointerEntered="pointerEntered_splitViewPaneBtn">
                     <FontIcon x:Name="icon_setting"
-                              Glyph="&#xE713;"
-                              Rotation="0"
-                              CenterPoint="10 10 0">
+                          Glyph="&#xE713;"
+                          Rotation="0"
+                          CenterPoint="10 10 0">
                         <FontIcon.RotationTransition>
                             <ScalarTransition />
                         </FontIcon.RotationTransition>
                     </FontIcon>
                     <!--<AnimatedIcon x:Name="setting">
-            <AnimatedIcon.Source>
-                <animatedvisuals:Animation_lo6tdh3p />
-            </AnimatedIcon.Source>
-            <AnimatedIcon.FallbackIconSource>
-                <FontIconSource Glyph="&#xE713;" />
-            </AnimatedIcon.FallbackIconSource>
-        </AnimatedIcon>-->
+                    <AnimatedIcon.Source>
+                        <animatedvisuals:Animation_lo6tdh3p />
+                    </AnimatedIcon.Source>
+                    <AnimatedIcon.FallbackIconSource>
+                        <FontIconSource Glyph="&#xE713;" />
+                    </AnimatedIcon.FallbackIconSource>
+                </AnimatedIcon>-->
                 </Button>
-                <GridView ItemsSource="{x:Bind heatmap}"
+                <StackPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Center">
+                    <GridView ItemsSource="{x:Bind heatmap}"
                           x:Name="grid_heatmap"
                           IsItemClickEnabled="True"
                           CanDragItems="False"
@@ -180,73 +180,84 @@
                           CanReorderItems="False"
                           SelectionMode="Extended"
                           FlowDirection="LeftToRight"
-                          Grid.Row="0"
-                          Grid.Column="1"
                           HorizontalAlignment="Center"
                           VerticalAlignment="Center" >
-                    <GridView.ItemTemplate>
-                        <DataTemplate x:DataType="local:HeatMap_pixel">
-                            <Rectangle Width="20" 
-                                       Height="20" 
+                        <GridView.ItemTemplate>
+                            <DataTemplate x:DataType="local:HeatMap_pixel">
+                                <Rectangle Width="30" 
+                                       Height="30" 
                                        Margin="0 0 0 0">
-                                <Rectangle.Fill>
-                                    <SolidColorBrush Color="{x:Bind local:HeatMap_pixelHelper.GetColor(adcValue), Mode=OneWay}" />
-                                </Rectangle.Fill>
-                            </Rectangle>
-                        </DataTemplate>
-                    </GridView.ItemTemplate>
-                    <GridView.ItemContainerStyle>
-                        <Style TargetType="GridViewItem">
-                            <Setter Property="Margin" Value="0 0 0 0" />
-                            <Setter Property="Padding" Value="0 0 0 0" />
-                            <Setter Property="MinHeight" Value="21" />
-                            <Setter Property="MinWidth" Value="21" />
-                        </Style>
-                    </GridView.ItemContainerStyle>
-                    <GridView.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <ItemsWrapGrid MaximumRowsOrColumns="32"
+                                    <Rectangle.Fill>
+                                        <SolidColorBrush Color="{x:Bind local:HeatMap_pixelHelper.GetColor(adcValue), Mode=OneWay}" />
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                            </DataTemplate>
+                        </GridView.ItemTemplate>
+                        <GridView.ItemContainerStyle>
+                            <Style TargetType="GridViewItem">
+                                <Setter Property="Margin" Value="0 0 0 0" />
+                                <Setter Property="Padding" Value="0 0 0 0" />
+                                <Setter Property="MinHeight" Value="31" />
+                                <Setter Property="MinWidth" Value="31" />
+                            </Style>
+                        </GridView.ItemContainerStyle>
+                        <GridView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <ItemsWrapGrid MaximumRowsOrColumns="20"
                                            Orientation="Horizontal" />
-                        </ItemsPanelTemplate>
-                    </GridView.ItemsPanel>
-                    <GridView.ItemContainerTransitions>
-                        <TransitionCollection />
-                    </GridView.ItemContainerTransitions>
-                </GridView>
-                <Button Click="click_startBtn"
-                        Width="42"
-                        Height="42"
-                        Padding="0"
-                        Grid.Row="1"
-                        Grid.Column="2"
-                        VerticalAlignment="Top"
-                        HorizontalAlignment="Left">
-                    <FontIcon x:Name="icon_switch" 
-                              Glyph="{x:Bind local:ViewModel_switch.boolToGlyph(viewModel_Switch.isStartIcon), Mode=OneWay}"/>
-                </Button>
-                <InfoBar x:Name="info_error"
+                            </ItemsPanelTemplate>
+                        </GridView.ItemsPanel>
+                        <GridView.ItemContainerTransitions>
+                            <TransitionCollection />
+                        </GridView.ItemContainerTransitions>
+                    </GridView>
+                    <Slider x:Name="slider_time" 
+                        Width="200" 
+                        IsEnabled="False" 
+                        ThumbToolTipValueConverter="{x:Bind sliderConverter}"
+                        ValueChanged="slider_time_ValueChanged" />
+                    <ProgressBar x:Name="progressBar_collect" Width="200" IsIndeterminate="True" Visibility="Collapsed" />
+                </StackPanel>
+                <ToggleButton Click="click_sendBtn"
+                          Width="42"
+                          Height="42"
+                          Padding="0"
+                          Grid.Row="1"
+                          Grid.Column="2"
+                          VerticalAlignment="Top"
+                          HorizontalAlignment="Left">
+                    <FontIcon Glyph="&#xE724;" />
+                </ToggleButton>
+                <Grid Grid.Row="1" Grid.Column="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="100" />
+                    </Grid.ColumnDefinitions>
+                    <InfoBar x:Name="info_error"
                          x:FieldModifier="public"
-                         Grid.Column="1"
-                         Grid.Row="1"
+                         Grid.Column="0"
                          Margin="50 0 50 0"
                          IsOpen="True"
                          Severity="Error"
                          Title="串口错误"
                          Message="未找到串口"
                          IsClosable="False" />
+                    <NumberBox x:Name="numberBox_secends" Grid.Column="1" VerticalAlignment="Top" PlaceholderText="Seconds" Height="36" Margin="0 3 20 0" />
+                </Grid>
                 <Grid Grid.Row="0"
-                      Grid.Column="2"
-                      Margin="0 24 24 24">
+                  Grid.Column="2"
+                  Margin="0 24 24 24">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="16" />
                         <RowDefinition Height="*" />
                         <RowDefinition Height="16" />
                     </Grid.RowDefinitions>
                     <TextBlock Text="{x:Bind local:HeatMap_pixelHelper.range, Mode=OneWay}" 
-                               x:Name="legendRange"
-                               Grid.Row="0"
-                               HorizontalAlignment="Center" />
-                    <Rectangle Grid.Row="1" Margin="0 12 0 12">
+                           x:Name="legendRange"
+                           Grid.Row="0"
+                           HorizontalAlignment="Center" />
+                    <Rectangle Grid.Row="1"
+                           Margin="0 12 0 12">
                         <Rectangle.Fill>
                             <LinearGradientBrush StartPoint="0, 0" EndPoint="0, 1">
                                 <GradientStop Color="DarkRed" Offset="0" />
@@ -260,8 +271,8 @@
                         </Rectangle.Fill>
                     </Rectangle>
                     <TextBlock Text="0" 
-                               Grid.Row="2"
-                               HorizontalAlignment="Center" />
+                           Grid.Row="2"
+                           HorizontalAlignment="Center" />
                 </Grid>
             </Grid>
         </SplitView>
