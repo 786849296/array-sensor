@@ -38,29 +38,6 @@ public sealed partial class MainPage : Page
 
     public MainPage()
     {
-        DeviceWatcher deviceWatcher = DeviceInformation.CreateWatcher(SerialDevice.GetDeviceSelector());
-        deviceWatcher.Added += (dw, info) => {
-            comInfos.Add(info);
-            combobox_com.SelectedItem ??= info;
-            info_error.IsOpen = false;
-        };
-        deviceWatcher.Removed += (dw, infoUpdate) => {
-            foreach (DeviceInformation comInfo in comInfos)
-                if (comInfo.Id == infoUpdate.Id)
-                {
-                    comInfos.Remove(comInfo);
-                    if (infoUpdate.Id == comID && viewModel_Switch.isStartIcon)
-                        viewModel_Switch.isStartIcon = false;
-                    if (comInfos.Count == 0)
-                    {
-                        info_error.IsOpen = true;
-                        info_error.Message = "未找到串口";
-                    }
-                    break;
-                }
-        };
-        deviceWatcher.Start();
-
         var window = App.MainWindow;
         window.ExtendsContentIntoTitleBar = true;
         window.SetTitleBar(AppTitleBar);
@@ -71,6 +48,31 @@ public sealed partial class MainPage : Page
         for (int i = 0; i < row; i++)
             for (int j = 0; j < col; j++)
                 heatmap.Add(new HeatMap_pixel(i, j));
+
+        DeviceWatcher deviceWatcher = DeviceInformation.CreateWatcher(SerialDevice.GetDeviceSelector());
+        deviceWatcher.Added += (dw, info) =>
+            App.MainWindow.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, () => {
+                comInfos.Add(info);
+                combobox_com.SelectedItem ??= info;
+                info_error.IsOpen = false;
+            });
+        deviceWatcher.Removed += (dw, infoUpdate) =>
+            App.MainWindow.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, () => {
+                foreach (DeviceInformation comInfo in comInfos)
+                    if (comInfo.Id == infoUpdate.Id)
+                    {
+                        comInfos.Remove(comInfo);
+                        if (infoUpdate.Id == comID && viewModel_Switch.isStartIcon)
+                            viewModel_Switch.isStartIcon = false;
+                        if (comInfos.Count == 0)
+                        {
+                            info_error.IsOpen = true;
+                            info_error.Message = "未找到串口";
+                        }
+                        break;
+                    }
+            });
+        deviceWatcher.Start();
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
@@ -170,7 +172,7 @@ public sealed partial class MainPage : Page
         {
             FolderPicker folderPicker = new();
             //var window = WindowHelper.GetWindowForElement(this);
-            var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
             // Initialize the folder picker with the window handle (HWND).
             WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hWnd);
             // Set options for your folder picker
@@ -228,7 +230,7 @@ public sealed partial class MainPage : Page
         var openPicker = new Windows.Storage.Pickers.FileOpenPicker();
 
         // Retrieve the window handle (HWND) of the current WinUI 3 window.
-        var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
 
         // Initialize the file picker with the window handle (HWND).
         WinRT.Interop.InitializeWithWindow.Initialize(openPicker, hWnd);
