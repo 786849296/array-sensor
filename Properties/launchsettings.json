@@ -1,0 +1,10 @@
+﻿{
+    "profiles": {
+      "array-sensor (Package)": {
+        "commandName": "MsixPackage"
+      },
+      "array-sensor (Unpackaged)": {
+        "commandName": "Project"
+      }
+    }
+}
