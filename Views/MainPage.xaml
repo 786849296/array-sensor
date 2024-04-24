@@ -12,6 +12,15 @@
             <DataTemplate x:Key="headerFont">
                 <TextBlock Text="{Binding}" FontWeight="Bold" />
             </DataTemplate>
+            <DataTemplate x:Key="itemPixel" x:DataType="local:HeatMap_pixel">
+                <Rectangle Width="20" 
+               Height="20" 
+               Margin="0 0 0 0">
+                    <Rectangle.Fill>
+                        <SolidColorBrush Color="{x:Bind local:HeatMap_pixelHelper.GetColor(adcValue), Mode=OneWay}" />
+                    </Rectangle.Fill>
+                </Rectangle>
+            </DataTemplate>
         </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="32" />
@@ -39,62 +48,63 @@
         </Border>
 
         <SplitView x:Name="sv"
-                   OpenPaneLength="256"
-                   DisplayMode="Overlay"
-                   IsPaneOpen="True"
-                   PaneBackground="{StaticResource SystemAccentColorLight3}"
-                   Grid.Row="1">
+           OpenPaneLength="256"
+           DisplayMode="Overlay"
+           IsPaneOpen="True"
+           PaneBackground="{StaticResource SystemAccentColorLight3}"
+           Grid.Row="1">
             <SplitView.Pane>
-                <Pivot>
+                <Pivot x:Name="pivot" 
+               x:FieldModifier="public"
+               SelectionChanged="selectionChanged_pivot">
                     <PivotItem>
                         <PivotItem.Header>
                             <FontIcon Glyph="&#xE95F;" />
                         </PivotItem.Header>
-                        <StackPanel Orientation="Vertical"
-                                    Padding="12 24 12 24">
+                        <StackPanel Orientation="Vertical" Padding="12 24 12 24">
                             <ComboBox x:Name="combobox_com"
-                                      ItemsSource="{x:Bind comInfos}"
-                                      DisplayMemberPath="Name"
-                                      Header="com"
-                                      PlaceholderText="none"
-                                      x:FieldModifier="public"
-                                      Margin="12 0 12 12"
-                                      HeaderTemplate="{StaticResource headerFont}" />
+                              ItemsSource="{x:Bind comInfos}"
+                              DisplayMemberPath="Name"
+                              Header="com"
+                              PlaceholderText="none"
+                              x:FieldModifier="public"
+                              Margin="12 0 12 12"
+                              HeaderTemplate="{StaticResource headerFont}" />
                             <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
                             <ComboBox IsEditable="True"
-                                      x:Name="combobox_baud"
-                                      SelectedIndex="1"
-                                      Header="baud"
-                                      Margin="12 12 12 12"
-                                      HeaderTemplate="{StaticResource headerFont}">
+                              x:Name="combobox_baud"
+                              SelectedIndex="0"
+                              Header="baud"
+                              Margin="12 12 12 12"
+                              HeaderTemplate="{StaticResource headerFont}" >
                                 <x:Int32>115200</x:Int32>
                                 <x:Int32>1000000</x:Int32>
                             </ComboBox>
                             <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
                             <ComboBox x:Name="combobox_dataBits"
-                                      Header="data bits"
-                                      SelectedIndex="1"
-                                      Margin="12 12 12 12"
-                                      HeaderTemplate="{StaticResource headerFont}">
+                              Header="data bits"
+                              SelectedIndex="1"
+                              Margin="12 12 12 12"
+                              HeaderTemplate="{StaticResource headerFont}" >
                                 <x:Int32>7</x:Int32>
                                 <x:Int32>8</x:Int32>
                             </ComboBox>
                             <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
                             <ComboBox x:Name="combobox_stopBits"
-                                      Header="stop bits"
-                                      SelectedIndex="0"
-                                      Margin="12 12 12 12"
-                                      HeaderTemplate="{StaticResource headerFont}" >
+                              Header="stop bits"
+                              SelectedIndex="0"
+                              Margin="12 12 12 12"
+                              HeaderTemplate="{StaticResource headerFont}" >
                                 <x:String>One</x:String>
                                 <x:String>OnePointFive</x:String>
                                 <x:String>Two</x:String>
                             </ComboBox>
                             <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
                             <ComboBox x:Name="combobox_parity"
-                                      Header="parity"
-                                      SelectedIndex="0"
-                                      Margin="12 12 12 12"
-                                      HeaderTemplate="{StaticResource headerFont}">
+                              Header="parity"
+                              SelectedIndex="0"
+                              Margin="12 12 12 12"
+                              HeaderTemplate="{StaticResource headerFont}" >
                                 <x:String>None</x:String>
                                 <x:String>Odd</x:String>
                                 <x:String>Even</x:String>
@@ -106,23 +116,54 @@
                     </PivotItem>
                     <PivotItem>
                         <PivotItem.Header>
+                            <FontIcon Glyph="&#xE702;" />
+                        </PivotItem.Header>
+                        <StackPanel Orientation="Vertical" Padding="12 24 12 24">
+                            <InfoBar Title="CH9143"
+                             Severity="Informational"
+                             Message="目前仅支持CH9143蓝牙芯片。当你选择了这个配置页面再点击启动按钮时就会通过蓝牙进行数据采集。CH9143的串口配置由串口页面进行配置。" 
+                             IsOpen="True"
+                             Margin="0 0 0 12"/>
+                            <ComboBox x:Name="combobox_ble"
+                              ItemsSource="{x:Bind bleInfos}"
+                              DisplayMemberPath="Id"
+                              Header="ble"
+                              PlaceholderText="none"
+                              x:FieldModifier="public"
+                              Margin="12 0 12 12"
+                              HeaderTemplate="{StaticResource headerFont}" />
+                            <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
+                            <ToggleSwitch Header="蓝牙连接" 
+                                  OffContent="" 
+                                  Margin="12 12 12 0"
+                                  HeaderTemplate="{StaticResource headerFont}" 
+                                  Toggled="toggled_bleConn">
+                                <ToggleSwitch.OnContent>
+                                    <ProgressRing />
+                                </ToggleSwitch.OnContent>
+                            </ToggleSwitch>
+                            <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
+                        </StackPanel>
+                    </PivotItem>
+                    <PivotItem>
+                        <PivotItem.Header>
                             <FontIcon Glyph="&#xE90F;" />
                         </PivotItem.Header>
                         <StackPanel Orientation="Vertical" Padding="12 24 12 24">
                             <ToggleSwitch x:Name="ts_imageCollect" 
-                                          Header="连续采集图像" 
-                                          OffContent=""
-                                          IsOn="False" 
-                                          Toggled="toggle_imageCollectSw" 
-                                          HeaderTemplate="{StaticResource headerFont}"
-                                          Margin="12 0 12 0"/>
+                                  Header="连续采集图像" 
+                                  OffContent=""
+                                  IsOn="False" 
+                                  Toggled="toggle_imageCollectSw" 
+                                  HeaderTemplate="{StaticResource headerFont}"
+                                  Margin="12 0 12 0" />
                             <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
                             <ComboBox IsEditable="True"
-                                      SelectedIndex="0"
-                                      Header="range"
-                                      Margin="12 12 12 12"
-                                      HeaderTemplate="{StaticResource headerFont}"
-                                      SelectionChanged="selectionChanged_rangeCb">
+                              SelectedIndex="0"
+                              Header="range"
+                              Margin="12 12 12 12"
+                              HeaderTemplate="{StaticResource headerFont}"
+                              SelectionChanged="selectionChanged_rangeCb">
                                 <x:Int32>4095</x:Int32>
                                 <x:Int32>2048</x:Int32>
                                 <x:Int32>1024</x:Int32>
@@ -131,6 +172,15 @@
                             <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
                             <TextBlock Text="触觉复现" FontWeight="Bold" Margin="12 12 12 6" />
                             <Button Content="选择文件" Margin="12 0 12 12" Click="click_recurrentBtn"/>
+                            <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
+                            <ToggleSwitch x:Name="ts_modelPredict" 
+                                  Header="模型预测" 
+                                  OffContent=""
+                                  OnContent=""
+                                  IsOn="False" 
+                                  Toggled="toggle_modelPredictSw" 
+                                  HeaderTemplate="{StaticResource headerFont}"
+                                  Margin="12 12 12 0" />
                             <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
                         </StackPanel>
                     </PivotItem>
@@ -146,107 +196,428 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="75" />
                 </Grid.RowDefinitions>
+                <Popup x:Name="popup_predict"
+               Grid.Column="1"
+               Grid.Row="0"
+               HorizontalAlignment="Right"
+               VerticalAlignment="Top"
+               FlowDirection="RightToLeft"
+               Margin="0 20 20 0"
+               IsOpen="False">
+                    <Popup.ChildTransitions>
+                        <TransitionCollection>
+                            <PopupThemeTransition />
+                        </TransitionCollection>
+                    </Popup.ChildTransitions>
+                    <Border Background="{ThemeResource FlyoutBackgroundThemeBrush}" 
+                    BorderThickness="2" 
+                    BorderBrush="Purple"
+                    Width="250"
+                    Margin="0 0 0 0"
+                    CornerRadius="20">
+                        <StackPanel>
+                            <Image x:Name="image_predict" Source="/Assets/empty.png" Stretch="UniformToFill" Margin="0 0 0 10" />
+                            <TextBlock x:Name="text_predict" FontStyle="Italic" FontWeight="Bold" Text="ClassName" FontSize="16" HorizontalAlignment="Center" />
+                            <TextBlock x:Name="text_cost" Foreground="Red" Text="frames/times" FontSize="16" HorizontalAlignment="Center" />
+                            <RelativePanel Margin="0 10 0 20">
+                                <ProgressRing x:Name="pr_score"
+                                      Width="100" 
+                                      Height="100"
+                                      RelativePanel.AlignHorizontalCenterWithPanel="True"
+                                      RelativePanel.AlignVerticalCenterWithPanel="True"
+                                      Background="LightGray"
+                                      IsIndeterminate="False" />
+                                <StackPanel RelativePanel.AlignHorizontalCenterWithPanel="True"
+                                    RelativePanel.AlignVerticalCenterWithPanel="True">
+                                    <TextBlock x:Name="text_score" HorizontalAlignment="Center" Foreground="Green" Text="score" />
+                                </StackPanel>
+                            </RelativePanel>
+                        </StackPanel>
+                    </Border>
+                </Popup>
                 <Button Click="click_splitViewPaneBtn"
-                        Width="42"
-                        Height="42"
-                        Padding="0"
-                        Grid.Row="1"
-                        Grid.Column="0"
-                        VerticalAlignment="Top"
-                        HorizontalAlignment="Right"
-                        PointerEntered="pointerEntered_splitViewPaneBtn">
+                Width="42"
+                Height="42"
+                Padding="0"
+                Grid.Row="1"
+                Grid.Column="0"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Right"
+                PointerEntered="pointerEntered_splitViewPaneBtn">
                     <FontIcon x:Name="icon_setting"
-                              Glyph="&#xE713;"
-                              Rotation="0"
-                              CenterPoint="10 10 0">
+                      Glyph="&#xE713;"
+                      Rotation="0"
+                      CenterPoint="10 10 0">
                         <FontIcon.RotationTransition>
                             <ScalarTransition />
                         </FontIcon.RotationTransition>
                     </FontIcon>
                     <!--<AnimatedIcon x:Name="setting">
-            <AnimatedIcon.Source>
-                <animatedvisuals:Animation_lo6tdh3p />
-            </AnimatedIcon.Source>
-            <AnimatedIcon.FallbackIconSource>
-                <FontIconSource Glyph="&#xE713;" />
-            </AnimatedIcon.FallbackIconSource>
-        </AnimatedIcon>-->
+                <AnimatedIcon.Source>
+                    <animatedvisuals:Animation_lo6tdh3p />
+                </AnimatedIcon.Source>
+                <AnimatedIcon.FallbackIconSource>
+                    <FontIconSource Glyph="&#xE713;" />
+                </AnimatedIcon.FallbackIconSource>
+            </AnimatedIcon>-->
                 </Button>
-                <GridView ItemsSource="{x:Bind heatmap}"
-                          x:Name="grid_heatmap"
+                <Image Source="/Assets/glove1m.png" 
+               Grid.Row="0" Grid.Column="1"
+               Canvas.ZIndex="0"
+               Stretch="Uniform" />
+                <Grid Canvas.ZIndex="1" Grid.Row="0" Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="7*" />
+                            <ColumnDefinition Width="3*" />
+                            <ColumnDefinition Width="3*" />
+                            <ColumnDefinition Width="3*" />
+                            <ColumnDefinition Width="3*" />
+                            <ColumnDefinition Width="3*" />
+                            <ColumnDefinition Width="3*" />
+                            <ColumnDefinition Width="3*" />
+                            <ColumnDefinition Width="8*" />
+                        </Grid.ColumnDefinitions>
+                        <GridView ItemsSource="{x:Bind f4}"
+                      ItemTemplate="{StaticResource itemPixel}"
+                      IsItemClickEnabled="True"
+                      CanDragItems="False"
+                      AllowDrop="False"
+                      CanReorderItems="False"
+                      SelectionMode="Extended"
+                      FlowDirection="LeftToRight"
+                      Grid.Column="1"
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Center"
+                      Margin="0 0 10 100">
+                            <GridView.ItemContainerStyle>
+                                <Style TargetType="GridViewItem">
+                                    <Setter Property="Margin" Value="0 0 0 0" />
+                                    <Setter Property="Padding" Value="0 0 0 0" />
+                                    <Setter Property="MinHeight" Value="21" />
+                                    <Setter Property="MinWidth" Value="21" />
+                                </Style>
+                            </GridView.ItemContainerStyle>
+                            <GridView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsWrapGrid MaximumRowsOrColumns="3" Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </GridView.ItemsPanel>
+                            <GridView.ItemContainerTransitions>
+                                <TransitionCollection />
+                            </GridView.ItemContainerTransitions>
+                        </GridView>
+                        <GridView ItemsSource="{x:Bind f3}"
+                          ItemTemplate="{StaticResource itemPixel}"
                           IsItemClickEnabled="True"
                           CanDragItems="False"
                           AllowDrop="False"
                           CanReorderItems="False"
                           SelectionMode="Extended"
                           FlowDirection="LeftToRight"
-                          Grid.Row="0"
+                          Grid.Column="2"
+                          HorizontalAlignment="Right"
+                          VerticalAlignment="Center"
+                          Margin="0 0 5 200">
+                            <GridView.ItemContainerStyle>
+                                <Style TargetType="GridViewItem">
+                                    <Setter Property="Margin" Value="0 0 0 0" />
+                                    <Setter Property="Padding" Value="0 0 0 0" />
+                                    <Setter Property="MinHeight" Value="21" />
+                                    <Setter Property="MinWidth" Value="21" />
+                                </Style>
+                            </GridView.ItemContainerStyle>
+                            <GridView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsWrapGrid MaximumRowsOrColumns="3" Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </GridView.ItemsPanel>
+                            <GridView.ItemContainerTransitions>
+                                <TransitionCollection />
+                            </GridView.ItemContainerTransitions>
+                        </GridView>
+                        <GridView ItemsSource="{x:Bind f2}"
+                          ItemTemplate="{StaticResource itemPixel}"
+                          IsItemClickEnabled="True"
+                          CanDragItems="False"
+                          AllowDrop="False"
+                          CanReorderItems="False"
+                          SelectionMode="Extended"
+                          FlowDirection="LeftToRight"
+                          Grid.Column="3"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          Margin="30 0 0 170">
+                            <GridView.ItemContainerStyle>
+                                <Style TargetType="GridViewItem">
+                                    <Setter Property="Margin" Value="0 0 0 0" />
+                                    <Setter Property="Padding" Value="0 0 0 0" />
+                                    <Setter Property="MinHeight" Value="21" />
+                                    <Setter Property="MinWidth" Value="21" />
+                                </Style>
+                            </GridView.ItemContainerStyle>
+                            <GridView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsWrapGrid MaximumRowsOrColumns="3" Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </GridView.ItemsPanel>
+                            <GridView.ItemContainerTransitions>
+                                <TransitionCollection />
+                            </GridView.ItemContainerTransitions>
+                        </GridView>
+                        <GridView ItemsSource="{x:Bind f1}"
+                          ItemTemplate="{StaticResource itemPixel}"
+                          IsItemClickEnabled="True"
+                          CanDragItems="False"
+                          AllowDrop="False"
+                          CanReorderItems="False"
+                          SelectionMode="Extended"
+                          FlowDirection="LeftToRight"
+                          Grid.Column="4"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          Margin="0 30 20 0">
+                            <GridView.ItemContainerStyle>
+                                <Style TargetType="GridViewItem">
+                                    <Setter Property="Margin" Value="0 0 0 0" />
+                                    <Setter Property="Padding" Value="0 0 0 0" />
+                                    <Setter Property="MinHeight" Value="21" />
+                                    <Setter Property="MinWidth" Value="21" />
+                                </Style>
+                            </GridView.ItemContainerStyle>
+                            <GridView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsWrapGrid MaximumRowsOrColumns="3" Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </GridView.ItemsPanel>
+                            <GridView.ItemContainerTransitions>
+                                <TransitionCollection />
+                            </GridView.ItemContainerTransitions>
+                        </GridView>
+                        <Rectangle Width="20" 
+                           Height="100" 
+                           Margin="50 0 0 30"
+                           Grid.Column="1"
+                           VerticalAlignment="Bottom"
+                           HorizontalAlignment="Center"
+                           Rotation="355">
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="{x:Bind local:HeatMap_pixelHelper.GetColor(ff[3].adcValue), Mode=OneWay}" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+                        <Rectangle Width="20" 
+                           Height="150" 
+                           Margin="40 0 0 50"
+                           Grid.Column="2"
+                           VerticalAlignment="Bottom"
+                           HorizontalAlignment="Center">
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="{x:Bind local:HeatMap_pixelHelper.GetColor(ff[2].adcValue), Mode=OneWay}" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+                        <Rectangle Width="20" 
+                           Height="150" 
+                           Margin="10 0 0 30"
+                           Grid.Column="3"
+                           VerticalAlignment="Bottom"
+                           HorizontalAlignment="Center"
+                           Rotation="5">
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="{x:Bind local:HeatMap_pixelHelper.GetColor(ff[1].adcValue), Mode=OneWay}" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+                        <Rectangle Width="20" 
+                           Height="75" 
+                           Margin="20 0 0 0"
+                           Grid.Column="4"
+                           VerticalAlignment="Bottom"
+                           HorizontalAlignment="Left"
+                           Rotation="15">
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="{x:Bind local:HeatMap_pixelHelper.GetColor(ff[0].adcValue), Mode=OneWay}" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+                        <Rectangle Width="20" 
+                           Height="250" 
+                           Margin="0 0 15 20"
+                           Grid.Column="7"
+                           VerticalAlignment="Bottom"
+                           HorizontalAlignment="Right"
+                           Rotation="5">
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="{x:Bind local:HeatMap_pixelHelper.GetColor(fb[3].adcValue), Mode=OneWay}" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+                        <Rectangle Width="20" 
+                           Height="250" 
+                           Margin="0 0 20 50"
+                           Grid.Column="6"
+                           VerticalAlignment="Bottom"
+                           HorizontalAlignment="Right">
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="{x:Bind local:HeatMap_pixelHelper.GetColor(fb[2].adcValue), Mode=OneWay}" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+                        <Rectangle Width="20" 
+                           Height="250" 
+                           Margin="0 0 10 40"
+                           Grid.Column="5"
+                           VerticalAlignment="Bottom"
+                           HorizontalAlignment="Right"
+                           Rotation="355">
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="{x:Bind local:HeatMap_pixelHelper.GetColor(fb[1].adcValue), Mode=OneWay}" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+                        <Rectangle Width="20" 
+                           Height="150" 
+                           Margin="0 0 10 0"
+                           Grid.Column="5"
+                           VerticalAlignment="Bottom"
+                           HorizontalAlignment="Left"
+                           Rotation="350">
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="{x:Bind local:HeatMap_pixelHelper.GetColor(fb[0].adcValue), Mode=OneWay}" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+                    </Grid>
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*" />
+                            <ColumnDefinition Width="4*" />
+                            <ColumnDefinition Width="5*" />
+                            <ColumnDefinition Width="2*" />
+                        </Grid.ColumnDefinitions>
+                        <Rectangle Width="20" 
+                           Height="100" 
+                           Margin="0 0 60 40"
+                           Grid.Column="0"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Right"
+                           Rotation="315">
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="{x:Bind local:HeatMap_pixelHelper.GetColor(ff[4].adcValue), Mode=OneWay}" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+                        <GridView ItemsSource="{x:Bind palm}"
+                          ItemTemplate="{StaticResource itemPixel}"
+                          IsItemClickEnabled="True"
+                          CanDragItems="False"
+                          AllowDrop="False"
+                          CanReorderItems="False"
+                          SelectionMode="Extended"
+                          FlowDirection="RightToLeft"
                           Grid.Column="1"
                           HorizontalAlignment="Center"
-                          VerticalAlignment="Center" >
-                    <GridView.ItemTemplate>
-                        <DataTemplate x:DataType="local:HeatMap_pixel">
-                            <Rectangle Width="20" 
-                                       Height="20" 
-                                       Margin="0 0 0 0">
-                                <Rectangle.Fill>
-                                    <SolidColorBrush Color="{x:Bind local:HeatMap_pixelHelper.GetColor(adcValue), Mode=OneWay}" />
-                                </Rectangle.Fill>
-                            </Rectangle>
-                        </DataTemplate>
-                    </GridView.ItemTemplate>
-                    <GridView.ItemContainerStyle>
-                        <Style TargetType="GridViewItem">
-                            <Setter Property="Margin" Value="0 0 0 0" />
-                            <Setter Property="Padding" Value="0 0 0 0" />
-                            <Setter Property="MinHeight" Value="21" />
-                            <Setter Property="MinWidth" Value="21" />
-                        </Style>
-                    </GridView.ItemContainerStyle>
-                    <GridView.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <ItemsWrapGrid MaximumRowsOrColumns="32"
-                                           Orientation="Horizontal" />
-                        </ItemsPanelTemplate>
-                    </GridView.ItemsPanel>
-                    <GridView.ItemContainerTransitions>
-                        <TransitionCollection />
-                    </GridView.ItemContainerTransitions>
-                </GridView>
+                          VerticalAlignment="Center">
+                            <GridView.ItemContainerStyle>
+                                <Style TargetType="GridViewItem">
+                                    <Setter Property="Margin" Value="0 0 0 0" />
+                                    <Setter Property="Padding" Value="0 0 0 0" />
+                                    <Setter Property="MinHeight" Value="21" />
+                                    <Setter Property="MinWidth" Value="21" />
+                                </Style>
+                            </GridView.ItemContainerStyle>
+                            <GridView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsWrapGrid MaximumRowsOrColumns="10" Orientation="Vertical" />
+                                </ItemsPanelTemplate>
+                            </GridView.ItemsPanel>
+                            <GridView.ItemContainerTransitions>
+                                <TransitionCollection />
+                            </GridView.ItemContainerTransitions>
+                        </GridView>
+                        <Rectangle Width="20" 
+                           Height="200" 
+                           Margin="20 25 0 0"
+                           Grid.Column="3"
+                           VerticalAlignment="top"
+                           HorizontalAlignment="Left"
+                           Rotation="30">
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="{x:Bind local:HeatMap_pixelHelper.GetColor(fb[4].adcValue), Mode=OneWay}" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+                        <GridView ItemsSource="{x:Bind f5}"
+                          ItemTemplate="{StaticResource itemPixel}"
+                          IsItemClickEnabled="True"
+                          CanDragItems="False"
+                          AllowDrop="False"
+                          CanReorderItems="False"
+                          SelectionMode="Extended"
+                          FlowDirection="LeftToRight"
+                          Grid.Column="0"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Top"
+                          Margin="50 10 0 0">
+                            <GridView.ItemContainerStyle>
+                                <Style TargetType="GridViewItem">
+                                    <Setter Property="Margin" Value="0 0 0 0" />
+                                    <Setter Property="Padding" Value="0 0 0 0" />
+                                    <Setter Property="MinHeight" Value="21" />
+                                    <Setter Property="MinWidth" Value="21" />
+                                </Style>
+                            </GridView.ItemContainerStyle>
+                            <GridView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsWrapGrid MaximumRowsOrColumns="3" Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </GridView.ItemsPanel>
+                            <GridView.ItemContainerTransitions>
+                                <TransitionCollection />
+                            </GridView.ItemContainerTransitions>
+                        </GridView>
+                    </Grid>
+                </Grid>
                 <Button Click="click_startBtn"
-                        Width="42"
-                        Height="42"
-                        Padding="0"
-                        Grid.Row="1"
-                        Grid.Column="2"
-                        VerticalAlignment="Top"
-                        HorizontalAlignment="Left">
+                Width="42"
+                Height="42"
+                Padding="0"
+                Grid.Row="1"
+                Grid.Column="2"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Left">
                     <FontIcon x:Name="icon_switch" 
-                              Glyph="{x:Bind local:ViewModel_switch.boolToGlyph(viewModel_Switch.isStartIcon), Mode=OneWay}"/>
+                      Glyph="{x:Bind local:ViewModel_switch.boolToGlyph(viewModel_Switch.isStartIcon), Mode=OneWay}"/>
                 </Button>
-                <InfoBar x:Name="info_error"
-                         x:FieldModifier="public"
-                         Grid.Column="1"
-                         Grid.Row="1"
-                         Margin="50 0 50 0"
-                         IsOpen="True"
-                         Severity="Error"
-                         Title="串口错误"
-                         Message="未找到串口"
-                         IsClosable="False" />
+                <InfoBar x:Name="info_com"
+                 x:FieldModifier="public"
+                 Grid.Column="1"
+                 Grid.Row="1"
+                 Margin="50 0 50 0"
+                 IsOpen="True"
+                 Severity="Error"
+                 Title="串口错误"
+                 Message="未找到串口"
+                 IsClosable="False" />
+                <InfoBar x:Name="info_ble"
+                 x:FieldModifier="public"
+                 Grid.Column="1"
+                 Grid.Row="1"
+                 Margin="50 0 50 0"
+                 IsOpen="False"
+                 Severity="Error"
+                 Title="蓝牙错误"
+                 Message="未找到蓝牙"
+                 IsClosable="False" />
                 <Grid Grid.Row="0"
-                      Grid.Column="2"
-                      Margin="0 24 24 24">
+              Grid.Column="2"
+              Margin="0 24 24 24">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="16" />
                         <RowDefinition Height="*" />
                         <RowDefinition Height="16" />
                     </Grid.RowDefinitions>
-                    <TextBlock Text="{x:Bind local:HeatMap_pixelHelper.range, Mode=OneWay}" 
-                               x:Name="legendRange"
-                               Grid.Row="0"
-                               HorizontalAlignment="Center" />
-                    <Rectangle Grid.Row="1" Margin="0 12 0 12">
+                    <TextBlock Text="4095" 
+                       Grid.Row="0"
+                       x:Name="legendRange"
+                       HorizontalAlignment="Center" />
+                    <Rectangle Grid.Row="1"
+                       Margin="0 12 0 12">
                         <Rectangle.Fill>
                             <LinearGradientBrush StartPoint="0, 0" EndPoint="0, 1">
                                 <GradientStop Color="DarkRed" Offset="0" />
@@ -260,8 +631,8 @@
                         </Rectangle.Fill>
                     </Rectangle>
                     <TextBlock Text="0" 
-                               Grid.Row="2"
-                               HorizontalAlignment="Center" />
+                       Grid.Row="2"
+                       HorizontalAlignment="Center" />
                 </Grid>
             </Grid>
         </SplitView>

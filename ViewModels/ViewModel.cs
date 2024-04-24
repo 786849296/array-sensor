@@ -33,14 +33,20 @@ namespace array_sensor;
 //    }
 //}
 
-internal class ViewModel_switch : INotifyPropertyChanged 
+internal class ViewModel_switch : INotifyPropertyChanged
 {
     private bool _isStartIcon;
     public event PropertyChangedEventHandler PropertyChanged = delegate { };
-    public ViewModel_switch() { isStartIcon = true; }
+    public ViewModel_switch()
+    {
+        isStartIcon = true;
+    }
     public bool isStartIcon
     {
-        get => _isStartIcon;
+        get
+        {
+            return _isStartIcon;
+        }
         set
         {
             _isStartIcon = value; OnPropertyChanged(); /*OnPropertyChanged("boolToGlyph");*/
@@ -66,7 +72,6 @@ internal class HeatMap_pixel(int x, int y) : INotifyPropertyChanged
 {
     public int x = x;
     public int y = y;
-    
     public event PropertyChangedEventHandler PropertyChanged = delegate { };
     private ushort _adcValue = 0;
     public ushort adcValue
@@ -76,7 +81,10 @@ internal class HeatMap_pixel(int x, int y) : INotifyPropertyChanged
             _adcValue = value;
             OnPropertyChanged();
         }
-        get => _adcValue;
+        get
+        {
+            return _adcValue;
+        }
     }
 
     public void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -91,12 +99,12 @@ internal static class HeatMap_pixelHelper
     public static readonly Color[] linearGradientColors =
     [
         Colors.DarkBlue,
-        Colors.Blue,
-        Colors.Cyan,
-        Colors.Yellow,
-        Colors.Red,
-        Colors.DarkRed,
-    ];
+            Colors.Blue,
+            Colors.Cyan,
+            Colors.Yellow,
+            Colors.Red,
+            Colors.DarkRed,
+        ];
     public static ushort range = 4095;
 
     public static Color GetColor(ushort adcValue)
