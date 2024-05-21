@@ -14,7 +14,7 @@ public class KeyFrames
 {
     // Info：和数据集最大值挂钩，用于归一化，注意及时修改
     private const float _max = 3533;
-    public const int framesNum = 7;
+    public const int framesNum = 9;
 
     [ColumnName("input")]
     [VectorType(framesNum, 10, 16)]
@@ -34,8 +34,17 @@ public class KeyFrames
 
 public class Label
 {
-    private const int _classNum = 5;
-    private readonly string[] _labels = ["cube-gum", "cube-sponge", "cylinder-gum", "cylinder-sponge", "empty"];
+    private const int _classNum = 7;
+    private readonly string[] _labels =
+    [
+        "cube-gum",
+        "cube-sponge",
+        "cylinder-gum",
+        "cylinder-sponge",
+        "empty",
+        "steel-ball",
+        "tennis-ball"
+    ];
 
     [ColumnName("output")]
     [VectorType(_classNum)]
@@ -135,7 +144,7 @@ internal class GloveNet : IDisposable
         var results = mlContext.Data.CreateEnumerable<ClusterResult>(transformedData, reuseRowObject: false);
 
         ushort[][,] keyFrames = new ushort[KeyFrames.framesNum][,];
-        bool[] isHaveCluster = [false, false, false, false, false, false, false];
+        bool[] isHaveCluster = new bool[KeyFrames.framesNum];
         int len = 0;
         for (int i = 0; i < results.Count(); i++)
             if (!isHaveCluster[results.ElementAt(i).PredictedClusterId - 1])

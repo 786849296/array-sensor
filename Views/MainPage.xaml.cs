@@ -284,7 +284,7 @@ public sealed partial class MainPage : Page
                     if (viewModel_Switch.isStartIcon)
                     {
                         //thread_collect.ShutdownQueueAsync();
-                        if (mode == 0)
+                        if (mode == Mode.Serial)
                             com.Dispose();
                         reader.Dispose();
                         return;
@@ -325,7 +325,7 @@ public sealed partial class MainPage : Page
                         heatMapValue2UI(heatmapValue);
                         if (ts_modelPredict.IsOn)
                         {
-                            const ushort threshold = 100;
+                            const ushort threshold = 50;
                             if (palm.Max(i => i.adcValue) > threshold)
                             {
                                 frames.Enqueue(heatmapValue);
@@ -526,3 +526,4 @@ public sealed partial class MainPage : Page
         }
     }
 }
+      

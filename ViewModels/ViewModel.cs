@@ -43,10 +43,7 @@ internal class ViewModel_switch : INotifyPropertyChanged
     }
     public bool isStartIcon
     {
-        get
-        {
-            return _isStartIcon;
-        }
+        get => _isStartIcon;
         set
         {
             _isStartIcon = value; OnPropertyChanged(); /*OnPropertyChanged("boolToGlyph");*/
@@ -81,10 +78,7 @@ internal class HeatMap_pixel(int x, int y) : INotifyPropertyChanged
             _adcValue = value;
             OnPropertyChanged();
         }
-        get
-        {
-            return _adcValue;
-        }
+        get => _adcValue;
     }
 
     public void OnPropertyChanged([CallerMemberName] string propertyName = null)
