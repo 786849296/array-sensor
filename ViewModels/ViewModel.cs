@@ -1,4 +1,5 @@
 ﻿using Microsoft.UI;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
@@ -62,10 +63,9 @@ internal class ViewModel_switch : INotifyPropertyChanged
     }
 }
 
-internal class HeatMap_pixel(int x, int y) : INotifyPropertyChanged
+internal class HeatMap_pixel(Visibility visibility) : INotifyPropertyChanged
 {
-    public int x = x;
-    public int y = y;
+    public Visibility visibility = visibility;
     
     public event PropertyChangedEventHandler PropertyChanged = delegate { };
     private ushort _adcValue = 0;

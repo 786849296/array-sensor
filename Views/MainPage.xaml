@@ -186,9 +186,10 @@
                           VerticalAlignment="Center" >
                     <GridView.ItemTemplate>
                         <DataTemplate x:DataType="local:HeatMap_pixel">
-                            <Rectangle Width="20" 
-                                       Height="20" 
-                                       Margin="0 0 0 0">
+                            <Rectangle Width="50" 
+                                       Height="50" 
+                                       Margin="0 0 0 0"
+                                       Visibility="{x:Bind visibility}">
                                 <Rectangle.Fill>
                                     <SolidColorBrush Color="{x:Bind local:HeatMap_pixelHelper.GetColor(adcValue), Mode=OneWay}" />
                                 </Rectangle.Fill>
@@ -197,15 +198,15 @@
                     </GridView.ItemTemplate>
                     <GridView.ItemContainerStyle>
                         <Style TargetType="GridViewItem">
-                            <Setter Property="Margin" Value="0 0 0 0" />
+                            <Setter Property="Margin" Value="20 5 0 0" />
                             <Setter Property="Padding" Value="0 0 0 0" />
-                            <Setter Property="MinHeight" Value="21" />
-                            <Setter Property="MinWidth" Value="21" />
+                            <Setter Property="MinHeight" Value="51" />
+                            <Setter Property="MinWidth" Value="51" />
                         </Style>
                     </GridView.ItemContainerStyle>
                     <GridView.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <ItemsWrapGrid MaximumRowsOrColumns="32"
+                            <ItemsWrapGrid MaximumRowsOrColumns="4"
                                            Orientation="Horizontal" />
                         </ItemsPanelTemplate>
                     </GridView.ItemsPanel>
