@@ -132,6 +132,15 @@
                             <TextBlock Text="触觉复现" FontWeight="Bold" Margin="12 12 12 6" />
                             <Button Content="选择文件" Margin="12 0 12 12" Click="click_recurrentBtn"/>
                             <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
+                            <ToggleSwitch x:Name="ts_removePreP" 
+                                          Header="去除预压力" 
+                                          OffContent=""
+                                          OnContent=""
+                                          IsOn="False" 
+                                          Toggled="toggle_removePrePSw" 
+                                          HeaderTemplate="{StaticResource headerFont}"
+                                          Margin="12 12 12 0" />
+                            <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
                         </StackPanel>
                     </PivotItem>
                 </Pivot>

@@ -13,6 +13,7 @@ using Windows.Storage.Pickers;
 using Microsoft.UI.Dispatching;
 using array_sensor.Helpers;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace array_sensor.Views;
 
@@ -20,7 +21,7 @@ public sealed partial class MainPage : Page
 {
     public const ushort row = 10;
     public const ushort col = 4;
-    public ushort[,] heatmapValue = new ushort[row, col];
+    public ushort[] prePressure = new ushort[row * col];
 
     public SerialDevice com;
     public string comID;
@@ -84,44 +85,50 @@ public sealed partial class MainPage : Page
         TitleBarHelper.UpdateTitleBar(RequestedTheme);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ushort ushortSub(ushort a, ushort b)
+    {
+        return (ushort)(a > b ? a - b : 0);
+    }
+
     private void heatMapValue2UI(ushort[,] heatmapValue)
     {
-        heatmap[1].adcValue = heatmapValue[0, 0];
-        heatmap[2].adcValue = heatmapValue[0, 1];
-        heatmap[4].adcValue = heatmapValue[0, 2];
-        heatmap[5].adcValue = heatmapValue[0, 3];
-        heatmap[8].adcValue = heatmapValue[1, 0];
-        heatmap[9].adcValue = heatmapValue[1, 1];
-        heatmap[6].adcValue = heatmapValue[1, 2];
-        heatmap[7].adcValue = heatmapValue[1, 3];
-        heatmap[10].adcValue = heatmapValue[2, 0];
-        heatmap[11].adcValue = heatmapValue[2, 1];
-        heatmap[14].adcValue = heatmapValue[2, 2];
-        heatmap[15].adcValue = heatmapValue[2, 3];
-        heatmap[18].adcValue = heatmapValue[3, 0];
-        heatmap[19].adcValue = heatmapValue[3, 1];
-        heatmap[22].adcValue = heatmapValue[3, 2];
-        heatmap[23].adcValue = heatmapValue[3, 3];
-        heatmap[26].adcValue = heatmapValue[4, 0];
-        heatmap[27].adcValue = heatmapValue[4, 1];
-        heatmap[30].adcValue = heatmapValue[4, 2];
-        heatmap[31].adcValue = heatmapValue[4, 3];
-        heatmap[34].adcValue = heatmapValue[5, 0];
-        heatmap[35].adcValue = heatmapValue[5, 1];
-        heatmap[38].adcValue = heatmapValue[5, 2];
-        heatmap[37].adcValue = heatmapValue[5, 3];
-        heatmap[33].adcValue = heatmapValue[6, 0];
-        heatmap[32].adcValue = heatmapValue[6, 1];
-        heatmap[29].adcValue = heatmapValue[6, 2];
-        heatmap[28].adcValue = heatmapValue[6, 3];
-        heatmap[25].adcValue = heatmapValue[7, 0];
-        heatmap[24].adcValue = heatmapValue[7, 1];
-        heatmap[21].adcValue = heatmapValue[7, 2];
-        heatmap[20].adcValue = heatmapValue[7, 3];
-        heatmap[17].adcValue = heatmapValue[8, 0];
-        heatmap[16].adcValue = heatmapValue[8, 1];
-        heatmap[13].adcValue = heatmapValue[8, 2];
-        heatmap[12].adcValue = heatmapValue[8, 3];
+        heatmap[1].adcValue = ushortSub(heatmapValue[0, 0], prePressure[1]);
+        heatmap[2].adcValue = ushortSub(heatmapValue[0, 1], prePressure[2]);
+        heatmap[4].adcValue = ushortSub(heatmapValue[0, 2], prePressure[4]);
+        heatmap[5].adcValue = ushortSub(heatmapValue[0, 3], prePressure[5]);
+        heatmap[8].adcValue = ushortSub(heatmapValue[1, 0], prePressure[8]);
+        heatmap[9].adcValue = ushortSub(heatmapValue[1, 1], prePressure[9]);
+        heatmap[6].adcValue = ushortSub(heatmapValue[1, 2], prePressure[6]);
+        heatmap[7].adcValue = ushortSub(heatmapValue[1, 3], prePressure[7]);
+        heatmap[10].adcValue = ushortSub(heatmapValue[2, 0], prePressure[10]);
+        heatmap[11].adcValue = ushortSub(heatmapValue[2, 1], prePressure[11]);
+        heatmap[14].adcValue = ushortSub(heatmapValue[2, 2], prePressure[14]);
+        heatmap[15].adcValue = ushortSub(heatmapValue[2, 3], prePressure[15]);
+        heatmap[18].adcValue = ushortSub(heatmapValue[3, 0], prePressure[18]);
+        heatmap[19].adcValue = ushortSub(heatmapValue[3, 1], prePressure[19]);
+        heatmap[22].adcValue = ushortSub(heatmapValue[3, 2], prePressure[22]);
+        heatmap[23].adcValue = ushortSub(heatmapValue[3, 3], prePressure[23]);
+        heatmap[26].adcValue = ushortSub(heatmapValue[4, 0], prePressure[26]);
+        heatmap[27].adcValue = ushortSub(heatmapValue[4, 1], prePressure[27]);
+        heatmap[30].adcValue = ushortSub(heatmapValue[4, 2], prePressure[30]);
+        heatmap[31].adcValue = ushortSub(heatmapValue[4, 3], prePressure[31]);
+        heatmap[34].adcValue = ushortSub(heatmapValue[5, 0], prePressure[34]);
+        heatmap[35].adcValue = ushortSub(heatmapValue[5, 1], prePressure[35]);
+        heatmap[38].adcValue = ushortSub(heatmapValue[5, 2], prePressure[38]);
+        heatmap[37].adcValue = ushortSub(heatmapValue[5, 3], prePressure[37]);
+        heatmap[33].adcValue = ushortSub(heatmapValue[6, 0], prePressure[33]);
+        heatmap[32].adcValue = ushortSub(heatmapValue[6, 1], prePressure[32]);
+        heatmap[29].adcValue = ushortSub(heatmapValue[6, 2], prePressure[29]);
+        heatmap[28].adcValue = ushortSub(heatmapValue[6, 3], prePressure[28]);
+        heatmap[25].adcValue = ushortSub(heatmapValue[7, 0], prePressure[25]);
+        heatmap[24].adcValue = ushortSub(heatmapValue[7, 1], prePressure[24]);
+        heatmap[21].adcValue = ushortSub(heatmapValue[7, 2], prePressure[21]);
+        heatmap[20].adcValue = ushortSub(heatmapValue[7, 3], prePressure[20]);
+        heatmap[17].adcValue = ushortSub(heatmapValue[8, 0], prePressure[17]);
+        heatmap[16].adcValue = ushortSub(heatmapValue[8, 1], prePressure[16]);
+        heatmap[13].adcValue = ushortSub(heatmapValue[8, 2], prePressure[13]);
+        heatmap[12].adcValue = ushortSub(heatmapValue[8, 3], prePressure[12]);
     }
 
     private void click_splitViewPaneBtn(object sender, RoutedEventArgs e)
@@ -181,6 +188,7 @@ public sealed partial class MainPage : Page
                                 break;
                             }
                     }
+                    ushort[,] heatmapValue = new ushort[row, col];
                     for (int i = 0; i < row - 1; i++)
                         for (int j = 0; j < col; j++)
                             heatmapValue[i, j] = readerCom.ReadUInt16();
@@ -294,9 +302,22 @@ public sealed partial class MainPage : Page
                 for (int j = 0; j < col; j++)
                 {
                     heatmapValue[i, j] = Convert.ToUInt16(colString[j]);
-                    heatmap[i * col + j].adcValue = heatmapValue[i, j];
+                    heatMapValue2UI(heatmapValue);
                 }
             }
         }
+    }
+
+    private void toggle_removePrePSw(object sender, RoutedEventArgs e)
+    {
+        if ((sender as ToggleSwitch).IsOn)
+            if (!viewModel_Switch.isStartIcon)
+                for (int i = 0; i < row; i++)
+                    for (int j = 0; j < col; j++)
+                        prePressure[i * col + j] = heatmap[i * col + j].adcValue;
+            else
+                (sender as ToggleSwitch).IsOn = false;
+        else
+            Array.Clear(prePressure, 0, row * col);
     }
 }
