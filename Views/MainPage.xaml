@@ -63,7 +63,7 @@
                             <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
                             <ComboBox IsEditable="True"
                                       x:Name="combobox_baud"
-                                      SelectedIndex="1"
+                                      SelectedIndex="0"
                                       Header="baud"
                                       Margin="12 12 12 12"
                                       HeaderTemplate="{StaticResource headerFont}">
@@ -186,8 +186,8 @@
                           VerticalAlignment="Center" >
                     <GridView.ItemTemplate>
                         <DataTemplate x:DataType="local:HeatMap_pixel">
-                            <Rectangle Width="20" 
-                                       Height="20" 
+                            <Rectangle Width="100" 
+                                       Height="500" 
                                        Margin="0 0 0 0">
                                 <Rectangle.Fill>
                                     <SolidColorBrush Color="{x:Bind local:HeatMap_pixelHelper.GetColor(adcValue), Mode=OneWay}" />
@@ -199,13 +199,13 @@
                         <Style TargetType="GridViewItem">
                             <Setter Property="Margin" Value="0 0 0 0" />
                             <Setter Property="Padding" Value="0 0 0 0" />
-                            <Setter Property="MinHeight" Value="21" />
-                            <Setter Property="MinWidth" Value="21" />
+                            <Setter Property="MinHeight" Value="105" />
+                            <Setter Property="MinWidth" Value="105" />
                         </Style>
                     </GridView.ItemContainerStyle>
                     <GridView.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <ItemsWrapGrid MaximumRowsOrColumns="32"
+                            <ItemsWrapGrid MaximumRowsOrColumns="4"
                                            Orientation="Horizontal" />
                         </ItemsPanelTemplate>
                     </GridView.ItemsPanel>
