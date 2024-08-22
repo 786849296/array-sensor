@@ -14,7 +14,7 @@
                 <Rectangle Width="25" 
                            Height="25" 
                            Margin="0 0 0 0"
-                           Visibility="{x:Bind visibility}">
+                           Visibility="{x:Bind visibility, Mode=OneWay}">
                     <Rectangle.Fill>
                         <SolidColorBrush Color="{x:Bind local:HeatMap_pixelHelper.GetColor(adcValue), Mode=OneWay}" />
                     </Rectangle.Fill>
@@ -37,11 +37,11 @@
                 <Image x:Name="AppFontIcon"
                        HorizontalAlignment="Left" 
                        VerticalAlignment="Center"
-                       Source="/Assets/WindowIcon.ico" 
-                       Width="16" 
-                       Height="16"/>
+                       Source="/Assets/Square44x44Logo.targetsize-24.png" 
+                       Width="24" 
+                       Height="24"/>
                 <TextBlock x:Name="AppTitle"
-                           Text="uart"
+                           Text="cigit 智能灵巧手上位机"
                            VerticalAlignment="Center"
                            Margin="12,0,0,0"
                            Style="{StaticResource CaptionTextBlockStyle}" />
@@ -195,6 +195,15 @@
                                           HeaderTemplate="{StaticResource headerFont}"
                                           Margin="12 12 12 0" />
                             <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
+                            <ToggleSwitch x:Name="ts_switchLR" 
+                                          Header="左右手切换" 
+                                          OffContent="右手"
+                                          OnContent="左手"
+                                          IsOn="False" 
+                                          Toggled="toggle_switchLRSw" 
+                                          HeaderTemplate="{StaticResource headerFont}"
+                                          Margin="12 12 12 0" />
+                            <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
                         </StackPanel>
                     </PivotItem>
                 </Pivot>
@@ -240,16 +249,17 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Image Source="/Assets/hand.png" 
-                       Grid.Column="0"
-                       Canvas.ZIndex="0"
-                       Stretch="Uniform" />
+                    <Image x:Name="image_hand"
+                           Source="/Assets/rightHand.png" 
+                           Grid.Column="0"
+                           Canvas.ZIndex="0"
+                           Stretch="Uniform" />
                     <Grid Canvas.ZIndex="1" Grid.Column="0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="5*" />
                             <RowDefinition Height="4*" />
                         </Grid.RowDefinitions>
-                        <Grid Grid.Row="0">
+                        <Grid x:Name="grid_finger" Grid.Row="0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="3*" />
                                 <ColumnDefinition Width="2*" />
@@ -258,7 +268,12 @@
                                 <ColumnDefinition Width="2*" />
                                 <ColumnDefinition Width="3*" />
                             </Grid.ColumnDefinitions>
-                            <GridView ItemsSource="{x:Bind f4}"
+                            <Image HorizontalAlignment="Left" 
+                                   VerticalAlignment="Top"
+                                   Source="/Assets/lego.png" 
+                                   Stretch="Uniform"/>
+                            <GridView x:Name="gv_f4"
+                                      ItemsSource="{x:Bind f4}"
                                       ItemTemplate="{StaticResource itemPixel}"
                                       IsItemClickEnabled="True"
                                       CanDragItems="False"
@@ -289,7 +304,8 @@
                                     <TransitionCollection />
                                 </GridView.ItemContainerTransitions>
                             </GridView>
-                            <GridView ItemsSource="{x:Bind f3}"
+                            <GridView x:Name="gv_f3"
+                                      ItemsSource="{x:Bind f3}"
                                       ItemTemplate="{StaticResource itemPixel}"
                                       IsItemClickEnabled="True"
                                       CanDragItems="False"
@@ -321,7 +337,8 @@
                                     <TransitionCollection />
                                 </GridView.ItemContainerTransitions>
                             </GridView>
-                            <GridView ItemsSource="{x:Bind f2}"
+                            <GridView x:Name="gv_f2"
+                                      ItemsSource="{x:Bind f2}"
                                       ItemTemplate="{StaticResource itemPixel}"
                                       IsItemClickEnabled="True"
                                       CanDragItems="False"
@@ -353,14 +370,15 @@
                                     <TransitionCollection />
                                 </GridView.ItemContainerTransitions>
                             </GridView>
-                            <GridView ItemsSource="{x:Bind f1}"
+                            <GridView x:Name="gv_f1"
+                                      ItemsSource="{x:Bind f1}"
                                       ItemTemplate="{StaticResource itemPixel}"
                                       IsItemClickEnabled="True"
                                       CanDragItems="False"
                                       AllowDrop="False"
                                       CanReorderItems="False"
                                       SelectionMode="None"
-                                      FlowDirection="RightToLeft"
+                                      FlowDirection="LeftToRight"
                                       Grid.Column="4"
                                       VerticalAlignment="Top"
                                       HorizontalAlignment="Left"
@@ -392,7 +410,8 @@
                                 <ColumnDefinition Width="2*" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <GridView ItemsSource="{x:Bind palm}"
+                            <GridView x:Name="gv_palm"
+                                      ItemsSource="{x:Bind palm}"
                                       ItemTemplate="{StaticResource itemPixel}"
                                       IsItemClickEnabled="True"
                                       CanDragItems="False"

@@ -18,6 +18,7 @@ using LiveChartsCore.Defaults;
 using LiveChartsCore.SkiaSharpView.SKCharts;
 using OpenCvSharp;
 using LiveChartsCore.SkiaSharpView.WinUI;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace array_sensor.Views;
 
@@ -207,55 +208,51 @@ public sealed partial class MainPage : Page
         {
             switch (lastPivotIndex)
             {
-                case 0:
-                    if (combobox_com.SelectedItem != null)
-                    {
-                        try
-                        {
-                            com = await SerialDevice.FromIdAsync((combobox_com.SelectedItem as DeviceInformation).Id);
-                            if (com != null)
-                            {
-                                com.BaudRate = Convert.ToUInt32(combobox_baud.SelectedValue);
-                                com.DataBits = Convert.ToUInt16(combobox_dataBits.SelectedValue);
-                                com.StopBits = (SerialStopBitCount)combobox_stopBits.SelectedIndex;
-                                com.Parity = (SerialParity)combobox_parity.SelectedIndex;
-                                com.ReadTimeout = TimeSpan.FromMilliseconds(100);
-                                reader = new(com.InputStream) { ByteOrder = ByteOrder.BigEndian };
-                                writer = new(com.OutputStream);
-
-                                info_comOpen = false;
-                                info_com.IsOpen = false;
-                            }
-                        }
-                        catch (Exception error)
-                        {
-                            info_comOpen = true;
-                            info_com.IsOpen = true;
-                            info_com.Message = error.ToString();
-                            return;
-                        }
-                    }
-                    break;
-
-                case 1:
-                    if (handleBle == null)
-                    {
-                        info_ble.Message = "蓝牙未连接";
-                        info_ble.IsOpen = true;
-                        info_bleOpen = true;
+            case 0:
+                if (combobox_com.SelectedItem != null)
+                {
+                    try {
+                        com = await SerialDevice.FromIdAsync((combobox_com.SelectedItem as DeviceInformation).Id);
+                    } catch (Exception error) {
+                        info_comOpen = true;
+                        info_com.IsOpen = true;
+                        info_com.Message = error.ToString();
                         return;
                     }
-                    //这里转换需要注意，目前将停止位和校验位定死
-                    var success = CH9140.CH9140UartSetSerialBaud((nint)handleBle, Convert.ToInt32(combobox_baud.SelectedValue), Convert.ToInt32(combobox_dataBits.SelectedValue), 1, 0);
-                    bleReadStream.Size = 0;
-                    bleReadStream.Seek(0);
-                    reader = new(bleReadStream.GetInputStreamAt(0)) { ByteOrder = ByteOrder.BigEndian };
-                    info_ble.IsOpen = false;
-                    info_bleOpen = false;
-                    break;
+                    if (com != null)
+                    {
+                        com.BaudRate = Convert.ToUInt32(combobox_baud.SelectedValue);
+                        com.DataBits = Convert.ToUInt16(combobox_dataBits.SelectedValue);
+                        com.StopBits = (SerialStopBitCount)combobox_stopBits.SelectedIndex;
+                        com.Parity = (SerialParity)combobox_parity.SelectedIndex;
+                        com.ReadTimeout = TimeSpan.FromMilliseconds(100);
+                        reader = new(com.InputStream) { ByteOrder = ByteOrder.BigEndian };
+                        writer = new(com.OutputStream);
 
-                default:
+                        info_comOpen = false;
+                        info_com.IsOpen = false;
+                    }
+                }
+                break;
+            case 1:
+                if (handleBle == null)
+                {
+                    info_ble.Message = "蓝牙未连接";
+                    info_ble.IsOpen = true;
+                    info_bleOpen = true;
                     return;
+                }
+                //这里转换需要注意，目前将停止位和校验位定死
+                var success = CH9140.CH9140UartSetSerialBaud((nint)handleBle, Convert.ToInt32(combobox_baud.SelectedValue), Convert.ToInt32(combobox_dataBits.SelectedValue), 1, 0);
+                bleReadStream.Size = 0;
+                bleReadStream.Seek(0);
+                reader = new(bleReadStream.GetInputStreamAt(0)) { ByteOrder = ByteOrder.BigEndian };
+                info_ble.IsOpen = false;
+                info_bleOpen = false;
+                break;
+
+            default:
+                return;
             }
             viewModel_Switch.isStartIcon = false;
             HeatMap_pixelHelper.isStart = true;
@@ -323,22 +320,28 @@ public sealed partial class MainPage : Page
                     ushort[] arm = [heatmapValue[31, 29], heatmapValue[31, 30], heatmapValue[31, 31]];
                     // Debug.WriteLine(arm[0] + " " + arm[1] + " " + arm[2]);
                     var avg = (arm[0] + arm[1] + arm[2] - arm.Min()) / 2;
+                    bool flag = false;
                     while (true)
                     {
                         if (avg < bucketCurve[armControl, 0])
                         {
                             armControl--;
+                            flag = true;
                             continue;
                         }
                         else if (avg > bucketCurve[armControl, 1])
                         {
                             armControl++;
+                            flag = true;
                             continue;
                         }
                         break;
                     }
-                    writer.WriteString($":pulse{(5 - armControl) * 5}");
-                    writer.StoreAsync();
+                    if (flag)
+                    {
+                        writer.WriteString($":pulse{(5 - armControl) * 5}");
+                        writer.StoreAsync();
+                    }
                 }
             });
         }
@@ -557,7 +560,7 @@ public sealed partial class MainPage : Page
     {
         var chartLine = (sender as AppBarButton).CommandParameter as ViewModel_lineChart;
         lineCharts.Remove(chartLine);
-        (chartLine.series[0].Values as List<DateTimePoint>).Clear();
+        (chartLine.series[0].Values as List<DateTimePoint>)?.Clear();
         legendRange.UnregisterPropertyChangedCallback(TextBlock.TextProperty, chartLine.tokenLegend);
         chartLine.parent.chartLine = null;
     }
@@ -592,6 +595,36 @@ public sealed partial class MainPage : Page
                 (sender as ToggleSwitch).IsOn = false;
         else
             Array.Clear(prePressure, 0, row * col);
+    }
+
+    private void toggle_switchLRSw(object sender, RoutedEventArgs e)
+    {
+        if ((sender as ToggleSwitch).IsOn)
+        {
+            Grid.SetColumn(gv_f1, 1);
+            Grid.SetColumn(gv_f2, 2);
+            Grid.SetColumn(gv_f3, 3);
+            Grid.SetColumn(gv_f4, 4);
+            gv_f1.FlowDirection = FlowDirection.RightToLeft;
+            gv_f2.FlowDirection = FlowDirection.RightToLeft;
+            gv_f3.FlowDirection = FlowDirection.RightToLeft;
+            gv_f4.FlowDirection = FlowDirection.RightToLeft;
+            gv_palm.FlowDirection = FlowDirection.RightToLeft;
+            image_hand.Source = new BitmapImage(new Uri("ms-appx:///Assets/leftHand.png"));
+        }
+        else
+        {
+            Grid.SetColumn(gv_f1, 4);
+            Grid.SetColumn(gv_f2, 3);
+            Grid.SetColumn(gv_f3, 2);
+            Grid.SetColumn(gv_f4, 1);
+            gv_f1.FlowDirection = FlowDirection.LeftToRight;
+            gv_f2.FlowDirection = FlowDirection.LeftToRight;
+            gv_f3.FlowDirection = FlowDirection.LeftToRight;
+            gv_f4.FlowDirection = FlowDirection.LeftToRight;
+            gv_palm.FlowDirection = FlowDirection.LeftToRight;
+            image_hand.Source = new BitmapImage(new Uri("ms-appx:///Assets/rightHand.png"));
+        }
     }
 }
 
