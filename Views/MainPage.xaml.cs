@@ -12,6 +12,8 @@ using Windows.Storage.AccessCache;
 using Windows.Storage.Pickers;
 using Microsoft.UI.Dispatching;
 using array_sensor.Helpers;
+using array_sensor.Contracts.Services;
+using array_sensor.Services;
 
 namespace array_sensor.Views;
 
@@ -19,17 +21,17 @@ public sealed partial class MainPage : Page
 {
     public const ushort row = 32;
     public const ushort col = 32;
-    public ushort[,] heatmapValue = new ushort[row, col];
 
     public SerialDevice com;
     public string comID;
     public DataReader readerCom;
     public DispatcherQueueController thread_serialCollect = DispatcherQueueController.CreateOnDedicatedThread();
-    public StorageFolder folder;
+    public StorageFolder? folder;
 
     public ObservableCollection<DeviceInformation> comInfos = [];
     internal ViewModel_switch viewModel_Switch = new();
     internal ObservableCollection<HeatMap_pixel> heatmap = [];
+    private ICalibrationService? calibration;
 
     public MainViewModel ViewModel
     {
@@ -89,77 +91,75 @@ public sealed partial class MainPage : Page
     {
         if (viewModel_Switch.isStartIcon && combobox_com.SelectedItem != null)
         {
-            try
-            {
+            try {
                 com = await SerialDevice.FromIdAsync((combobox_com.SelectedItem as DeviceInformation).Id);
-                comID = (combobox_com.SelectedItem as DeviceInformation).Id;
-                if (com != null)
-                {
-                    readerCom = new(com.InputStream)
-                    {
-                        ByteOrder = ByteOrder.BigEndian
-                    };
-                    info_error.IsOpen = false;
-                    com.BaudRate = Convert.ToUInt32(combobox_baud.SelectedValue);
-                    com.DataBits = Convert.ToUInt16(combobox_dataBits.SelectedValue);
-                    com.StopBits = (SerialStopBitCount)combobox_stopBits.SelectedIndex;
-                    com.Parity = (SerialParity)combobox_parity.SelectedIndex;
-                    com.ReadTimeout = TimeSpan.FromMilliseconds(400);
-
-                    info_error.IsOpen = false;
-                    viewModel_Switch.isStartIcon = false;
-
-                    thread_serialCollect.DispatcherQueue.TryEnqueue(async () =>
-                    {
-                        while (true)
-                        {
-                            if (viewModel_Switch.isStartIcon)
-                            {
-                                //thread_collect.ShutdownQueueAsync();
-                                com.Dispose();
-                                readerCom.Dispose();
-                                return;
-                            }
-                            while (true)
-                            {
-                                if (readerCom.UnconsumedBufferLength < 2)
-                                    await readerCom.LoadAsync(row * col * 2 + 2);
-                                if (readerCom.ReadByte() == 0xff)
-                                    if (readerCom.ReadByte() == 0xff)
-                                    {
-                                        if (readerCom.UnconsumedBufferLength < row * col * 2)
-                                            await readerCom.LoadAsync(row * col * 2 - readerCom.UnconsumedBufferLength);
-                                        break;
-                                    }
-                            }
-                            for (int i = 0; i < row; i++)
-                                for (int j = 0; j < col; j++)
-                                    heatmapValue[i, j] = readerCom.ReadUInt16();
-                            this.DispatcherQueue.TryEnqueue(() => {
-                                if (folder != null)
-                                {
-                                    string fileName = DateTime.Now.ToString("yyyy-MM-dd HH.mm.ss.fff") + ".csv";
-                                    using (var writer = new StreamWriter(System.IO.Path.Combine(folder.Path, fileName)))
-                                        for (int i = 0; i < row; i++)
-                                        {
-                                            for (int j = 0; j < col; j++)
-                                                writer.Write(heatmapValue[i, j] + ",");
-                                            writer.Write('\n');
-                                        }
-                                }
-                                for (int i = 0; i < row; i++)
-                                    for (int j = 0; j < col; j++)
-                                        heatmap[i * col + j].adcValue = heatmapValue[i, j];
-                            });
-                        }
-                    });
-                }
-            }
-            catch (Exception error)
-            {
+            } catch (Exception error) {
                 info_error.IsOpen = true;
                 info_error.Message = error.ToString();
+                return;
             }
+            comID = (combobox_com.SelectedItem as DeviceInformation).Id;
+            readerCom = new(com.InputStream)
+            {
+                ByteOrder = ByteOrder.BigEndian
+            };
+            info_error.IsOpen = false;
+            com.BaudRate = Convert.ToUInt32(combobox_baud.SelectedValue);
+            com.DataBits = Convert.ToUInt16(combobox_dataBits.SelectedValue);
+            com.StopBits = (SerialStopBitCount)combobox_stopBits.SelectedIndex;
+            com.Parity = (SerialParity)combobox_parity.SelectedIndex;
+            com.ReadTimeout = TimeSpan.FromMilliseconds(400);
+
+            info_error.IsOpen = false;
+            viewModel_Switch.isStartIcon = false;
+
+            thread_serialCollect.DispatcherQueue.TryEnqueue(async () =>
+            {
+                while (true)
+                {
+                    if (viewModel_Switch.isStartIcon)
+                    {
+                        //thread_collect.ShutdownQueueAsync();
+                        com.Dispose();
+                        readerCom.Dispose();
+                        return;
+                    }
+                    while (true)
+                    {
+                        if (readerCom.UnconsumedBufferLength < 2)
+                            await readerCom.LoadAsync(row * col * 2 + 2);
+                        if (readerCom.ReadByte() == 0xff)
+                            if (readerCom.ReadByte() == 0xff)
+                            {
+                                if (readerCom.UnconsumedBufferLength < row * col * 2)
+                                    await readerCom.LoadAsync(row * col * 2 - readerCom.UnconsumedBufferLength);
+                                break;
+                            }
+                    }
+                    ushort[,] heatmapValue = new ushort[row, col];
+                    for (int i = 0; i < row; i++)
+                        for (int j = 0; j < col; j++)
+                            heatmapValue[i, j] = readerCom.ReadUInt16();
+                    this.DispatcherQueue.TryEnqueue(() => {
+                        if (folder != null)
+                        {
+                            string fileName = DateTime.Now.ToString("yyyy-MM-dd HH.mm.ss.fff") + ".csv";
+                            using (var writer = new StreamWriter(System.IO.Path.Combine(folder.Path, fileName)))
+                                for (int i = 0; i < row; i++)
+                                {
+                                    for (int j = 0; j < col; j++)
+                                        writer.Write(heatmapValue[i, j] + ",");
+                                    writer.Write('\n');
+                                }
+                        }
+                        if (calibration != null)
+                            heatmapValue = calibration.calibrate(heatmapValue);
+                        for (int i = 0; i < row; i++)
+                            for (int j = 0; j < col; j++)
+                                heatmap[i * col + j].adcValue = heatmapValue[i, j];
+                    });
+                }
+            });
         }
         else if (!viewModel_Switch.isStartIcon)
             viewModel_Switch.isStartIcon = true;
@@ -257,6 +257,48 @@ public sealed partial class MainPage : Page
                     heatmap[i * col + j].adcValue = heatmapValue[i, j];
                 }
             }
+        }
+    }
+
+    private async void toggle_calibrationSw(object sender, RoutedEventArgs e)
+    {
+        ToggleSwitch sw = sender as ToggleSwitch;
+        if (sw.IsOn)
+        {
+            // Create a file picker
+            var openPicker = new Windows.Storage.Pickers.FileOpenPicker();
+
+            // Retrieve the window handle (HWND) of the current WinUI 3 window.
+            var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+
+            // Initialize the file picker with the window handle (HWND).
+            WinRT.Interop.InitializeWithWindow.Initialize(openPicker, hWnd);
+
+            // Set options for your file picker
+            openPicker.FileTypeFilter.Add(".csv");
+            openPicker.FileTypeFilter.Add(".onnx");
+
+            // Open the picker for the user to pick a file
+            var file = await openPicker.PickSingleFileAsync();
+            if (file != null)
+            {
+                // Prevent updates to the remote version of the file until we finish making changes and call CompleteUpdatesAsync.
+                CachedFileManager.DeferUpdates(file);
+                calibration = file.FileType switch
+                {
+                    ".csv" => await FuncFitCalibrationService.CreateAsync(file, (para) => para[0] * Math.Pow(para[4] + para[1], 2) + para[2] * Math.Pow(para[4], 0.5) + para[3]),
+                    ".onnx" => MLPCalibrationService.Create(file),
+                    _ => throw new NotImplementedException("不支持的格式"),
+                };
+                sw.OnContent = file.Path;
+            }
+            else
+                sw.IsOn = false;
+        }
+        else
+        {
+            calibration?.Dispose();
+            calibration = null;
         }
     }
 }
