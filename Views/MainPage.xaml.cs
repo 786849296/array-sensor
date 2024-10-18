@@ -9,11 +9,14 @@ using Windows.Storage;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml;
 using Windows.Storage.AccessCache;
-using Windows.Storage.Pickers;
 using Microsoft.UI.Dispatching;
 using array_sensor.Helpers;
 using array_sensor.Contracts.Services;
 using array_sensor.Services;
+using OpenCvSharp;
+using array_sensor.Core.Services;
+using SharpDX;
+using System.Diagnostics;
 
 namespace array_sensor.Views;
 
@@ -34,6 +37,10 @@ public sealed partial class MainPage : Page
     private ICalibrationService? calibration;
 
     public MainViewModel ViewModel
+    {
+        get;
+    }
+    public Surf3dVM surf3dVM
     {
         get;
     }
@@ -75,6 +82,30 @@ public sealed partial class MainPage : Page
                     }
             });
         deviceWatcher.Start();
+
+        surf3dVM = App.GetService<Surf3dVM>();
+    }
+
+    private void heatMapValue2UI(ushort[,] heatmapValue)
+    {
+        if (calibration != null)
+            heatmapValue = calibration.calibrate(heatmapValue);
+        var size = Convert.ToInt32(combobox_gaussKernelSize.SelectedValue);
+        Mat mat = Mat.FromPixelData(row, col, MatType.CV_16U, heatmapValue);
+        Cv2.GaussianBlur(mat, mat, new OpenCvSharp.Size(size, size), 0);
+        if (grid_heatmap.Visibility == Visibility.Visible)
+            for (int i = 0; i < row; i++)
+                for (int j = 0; j < col; j++)
+                    heatmap[i * col + j].adcValue = mat.At<ushort>(i, j);
+        else
+        {
+            Vector3[,] points = new Vector3[row, col];
+            for (int i = 0; i < row; i++)
+                for (int j = 0; j < col; j++)
+                    points[i, j] = new Vector3(i, j, mat.At<ushort>(i, j) / Surf3dVM.zZoom);
+            surf3dVM.updateSurf(points);
+            Debug.WriteLine(heatmap3D.FrameRate);
+        }
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
@@ -152,11 +183,7 @@ public sealed partial class MainPage : Page
                                     writer.Write('\n');
                                 }
                         }
-                        if (calibration != null)
-                            heatmapValue = calibration.calibrate(heatmapValue);
-                        for (int i = 0; i < row; i++)
-                            for (int j = 0; j < col; j++)
-                                heatmap[i * col + j].adcValue = heatmapValue[i, j];
+                        heatMapValue2UI(heatmapValue);
                     });
                 }
             });
@@ -170,16 +197,9 @@ public sealed partial class MainPage : Page
         ToggleSwitch imageCollectSw = sender as ToggleSwitch;
         if (imageCollectSw.IsOn)
         {
-            FolderPicker folderPicker = new();
-            //var window = WindowHelper.GetWindowForElement(this);
-            var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
-            // Initialize the folder picker with the window handle (HWND).
-            WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hWnd);
-            // Set options for your folder picker
-            folderPicker.SuggestedStartLocation = PickerLocationId.Desktop;
-            folderPicker.FileTypeFilter.Add("*");
-            // Open the picker for the user to pick a folder
-            folder = await folderPicker.PickSingleFolderAsync();
+            var picker = App.GetService<FolderPickerService>();
+            picker.hWnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+            folder = await picker.openPickerAsync<StorageFolder>(["*"]);
             if (folder != null)
             {
                 StorageApplicationPermissions.FutureAccessList.AddOrReplace("PickedFolderToken", folder);
@@ -226,20 +246,9 @@ public sealed partial class MainPage : Page
 
     private async void click_recurrentBtn(object sender, RoutedEventArgs e)
     {
-        // Create a file picker
-        var openPicker = new Windows.Storage.Pickers.FileOpenPicker();
-
-        // Retrieve the window handle (HWND) of the current WinUI 3 window.
-        var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
-
-        // Initialize the file picker with the window handle (HWND).
-        WinRT.Interop.InitializeWithWindow.Initialize(openPicker, hWnd);
-
-        // Set options for your file picker
-        openPicker.FileTypeFilter.Add(".csv");
-
-        // Open the picker for the user to pick a file
-        var file = await openPicker.PickSingleFileAsync();
+        var picker = App.GetService<FilePickerService>();
+        picker.hWnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+        var file = await picker.openPickerAsync<StorageFile>([".csv"]);
         if (file != null)
         {
             // Prevent updates to the remote version of the file until we finish making changes and call CompleteUpdatesAsync.
@@ -252,11 +261,9 @@ public sealed partial class MainPage : Page
             {
                 colString = fr.ReadLine().Split(',');
                 for (int j = 0; j < col; j++)
-                {
                     heatmapValue[i, j] = Convert.ToUInt16(colString[j]);
-                    heatmap[i * col + j].adcValue = heatmapValue[i, j];
-                }
             }
+            heatMapValue2UI(heatmapValue);
         }
     }
 
@@ -265,21 +272,9 @@ public sealed partial class MainPage : Page
         ToggleSwitch sw = sender as ToggleSwitch;
         if (sw.IsOn)
         {
-            // Create a file picker
-            var openPicker = new Windows.Storage.Pickers.FileOpenPicker();
-
-            // Retrieve the window handle (HWND) of the current WinUI 3 window.
-            var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
-
-            // Initialize the file picker with the window handle (HWND).
-            WinRT.Interop.InitializeWithWindow.Initialize(openPicker, hWnd);
-
-            // Set options for your file picker
-            openPicker.FileTypeFilter.Add(".csv");
-            openPicker.FileTypeFilter.Add(".onnx");
-
-            // Open the picker for the user to pick a file
-            var file = await openPicker.PickSingleFileAsync();
+            var picker = App.GetService<FilePickerService>();
+            picker.hWnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+            var file = await picker.openPickerAsync<StorageFile>([".csv", ".onnx"]);
             if (file != null)
             {
                 // Prevent updates to the remote version of the file until we finish making changes and call CompleteUpdatesAsync.
@@ -300,5 +295,11 @@ public sealed partial class MainPage : Page
             calibration?.Dispose();
             calibration = null;
         }
+    }
+
+    private void ts_3dSurf_Toggled(object sender, RoutedEventArgs e)
+    {
+        grid_heatmap.Visibility = ts_3dSurf.IsOn ? Visibility.Collapsed : Visibility.Visible;
+        heatmap3D.Visibility = ts_3dSurf.IsOn ? Visibility.Visible : Visibility.Collapsed;
     }
 }

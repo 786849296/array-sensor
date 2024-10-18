@@ -66,8 +66,8 @@ namespace array_sensor.Services
     {
         private class Feature
         {
-            private const float mean = 716.7011f;
-            private const float std = 438.8998f;
+            private const float mean = 1143.9253f;
+            private const float std = 592.2532f;
 
             [ColumnName("input")]
             [VectorType(3)]
