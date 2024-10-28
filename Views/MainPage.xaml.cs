@@ -17,6 +17,8 @@ using OpenCvSharp;
 using array_sensor.Core.Services;
 using SharpDX;
 using System.Diagnostics;
+using System.Data.SqlTypes;
+using System.Reflection.PortableExecutable;
 
 namespace array_sensor.Views;
 
@@ -35,6 +37,7 @@ public sealed partial class MainPage : Page
     internal ViewModel_switch viewModel_Switch = new();
     internal ObservableCollection<HeatMap_pixel> heatmap = [];
     private ICalibrationService? calibration;
+    internal HeatmapSliderValueConverterHelper sliderConverter = new();
 
     public MainViewModel ViewModel
     {
@@ -52,6 +55,7 @@ public sealed partial class MainPage : Page
         window.SetTitleBar(AppTitleBar);
 
         ViewModel = App.GetService<MainViewModel>();
+        surf3dVM = App.GetService<Surf3dVM>();
         InitializeComponent();
 
         for (int i = 0; i < row; i++)
@@ -82,8 +86,6 @@ public sealed partial class MainPage : Page
                     }
             });
         deviceWatcher.Start();
-
-        surf3dVM = App.GetService<Surf3dVM>();
     }
 
     private void heatMapValue2UI(ushort[,] heatmapValue)
@@ -134,7 +136,6 @@ public sealed partial class MainPage : Page
             {
                 ByteOrder = ByteOrder.BigEndian
             };
-            info_error.IsOpen = false;
             com.BaudRate = Convert.ToUInt32(combobox_baud.SelectedValue);
             com.DataBits = Convert.ToUInt16(combobox_dataBits.SelectedValue);
             com.StopBits = (SerialStopBitCount)combobox_stopBits.SelectedIndex;
@@ -143,6 +144,7 @@ public sealed partial class MainPage : Page
 
             info_error.IsOpen = false;
             viewModel_Switch.isStartIcon = false;
+            slider_heatmap.Visibility = Visibility.Collapsed;
 
             thread_serialCollect.DispatcherQueue.TryEnqueue(async () =>
             {
@@ -246,24 +248,32 @@ public sealed partial class MainPage : Page
 
     private async void click_recurrentBtn(object sender, RoutedEventArgs e)
     {
-        var picker = App.GetService<FilePickerService>();
+        var picker = App.GetService<FolderPickerService>();
         picker.hWnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
-        var file = await picker.openPickerAsync<StorageFile>([".csv"]);
-        if (file != null)
+        var folder = await picker.openPickerAsync<StorageFolder>([]);
+        if (folder != null)
         {
-            // Prevent updates to the remote version of the file until we finish making changes and call CompleteUpdatesAsync.
-            CachedFileManager.DeferUpdates(file);
-            using var stream = await file.OpenReadAsync();
-            using var fr = new StreamReader(stream.AsStreamForRead());
-            string[] colString;
-            ushort[,] heatmapValue = new ushort[row, col];
-            for (int i = 0; i < row; i++)
+            var files = Directory.EnumerateFiles(folder.Path, "*.csv");
+            sliderConverter.dataCsv.Clear();
+            foreach (var file in files)
+                sliderConverter.dataCsv.Add(file);
+            slider_heatmap.Maximum = files.Count() - 1;
+            slider_heatmap.Value = 0;
+            if (files.Count() > 1)
+                slider_heatmap.Visibility = Visibility;
+            using (var reader = new StreamReader(sliderConverter.dataCsv[0]))
             {
-                colString = fr.ReadLine().Split(',');
-                for (int j = 0; j < col; j++)
-                    heatmapValue[i, j] = Convert.ToUInt16(colString[j]);
+                string[] colString;
+                ushort[,] heatmapValue = new ushort[row, col];
+                for (int i = 0; i < row; i++)
+                {
+                    colString = reader.ReadLine().Split(',');
+                    for (int j = 0; j < col; j++)
+                        heatmapValue[i, j] = Convert.ToUInt16(colString[j]);
+                }
+                heatMapValue2UI(heatmapValue);
             }
-            heatMapValue2UI(heatmapValue);
+            info_error.IsOpen = false;
         }
     }
 
@@ -301,5 +311,22 @@ public sealed partial class MainPage : Page
     {
         grid_heatmap.Visibility = ts_3dSurf.IsOn ? Visibility.Collapsed : Visibility.Visible;
         heatmap3D.Visibility = ts_3dSurf.IsOn ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void slider_heatmap_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+    {
+        int index = (int)(sender as Slider).Value;
+        using (var reader = new StreamReader(sliderConverter.dataCsv[index]))
+        {
+            string[] colString;
+            ushort[,] heatmapValue = new ushort[row, col];
+            for (int i = 0; i < row; i++)
+            {
+                colString = reader.ReadLine().Split(',');
+                for (int j = 0; j < col; j++)
+                    heatmapValue[i, j] = Convert.ToUInt16(colString[j]);
+            }
+            heatMapValue2UI(heatmapValue);
+        }
     }
 }

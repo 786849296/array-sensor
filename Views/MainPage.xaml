@@ -204,21 +204,21 @@
                 </Button>
                 <GridView ItemsSource="{x:Bind heatmap}"
                           x:Name="grid_heatmap"
+                          Grid.Row="0"
+                          Grid.Column="1"
                           IsItemClickEnabled="True"
                           CanDragItems="False"
                           AllowDrop="False"
                           CanReorderItems="False"
                           SelectionMode="Extended"
                           FlowDirection="LeftToRight"
-                          Grid.Row="0"
-                          Grid.Column="1"
                           HorizontalAlignment="Center"
                           VerticalAlignment="Center" >
                     <GridView.ItemTemplate>
                         <DataTemplate x:DataType="local:HeatMap_pixel">
                             <Rectangle Width="20" 
-                                       Height="20" 
-                                       Margin="0 0 0 0">
+                                    Height="20" 
+                                    Margin="0 0 0 0">
                                 <Rectangle.Fill>
                                     <SolidColorBrush Color="{x:Bind local:HeatMap_pixelHelper.GetColor(adcValue), Mode=OneWay}" />
                                 </Rectangle.Fill>
@@ -236,7 +236,7 @@
                     <GridView.ItemsPanel>
                         <ItemsPanelTemplate>
                             <ItemsWrapGrid MaximumRowsOrColumns="32"
-                                           Orientation="Horizontal" />
+                                        Orientation="Horizontal" />
                         </ItemsPanelTemplate>
                     </GridView.ItemsPanel>
                     <GridView.ItemContainerTransitions>
@@ -245,18 +245,18 @@
                 </GridView>
 
                 <helix:Viewport3DX x:Name="heatmap3D"
-                                   DataContext="{x:Bind surf3dVM}"
-                                   Grid.Row="0"
-                                   Grid.Column="1"
-                                   Visibility="Collapsed"
-                                   BackgroundColor="White"
-                                   Camera="{x:Bind surf3dVM.camera}"
-                                   FXAALevel="Medium"
-                                   FixedRotationPoint="{x:Bind surf3dVM.Center, Mode=OneWay}"
-                                   FixedRotationPointEnabled="True"
-                                   ShowFrameRate="True"
-                                   ShowCoordinateSystem="True"
-                                   IsPanEnabled="False">
+                                  DataContext="{x:Bind surf3dVM}"
+                                  Grid.Row="0"
+                                  Grid.Column="1"
+                                  Visibility="Collapsed"
+                                  BackgroundColor="White"
+                                  Camera="{x:Bind surf3dVM.camera}"
+                                  FXAALevel="Medium"
+                                  FixedRotationPoint="{x:Bind surf3dVM.Center, Mode=OneWay}"
+                                  FixedRotationPointEnabled="True"
+                                  ShowFrameRate="True"
+                                  ShowCoordinateSystem="True"
+                                  IsPanEnabled="False">
                     <helix:Viewport3DX.EffectsManager>
                         <helixSharpDX:DefaultEffectsManager />
                     </helix:Viewport3DX.EffectsManager>
@@ -270,11 +270,11 @@
                     </helix:Element3DPresenter>
                     <helix:TopMostGroup3D IsHitTestVisible="False">
                         <helix:LineGeometryModel3D Geometry="{x:Bind surf3dVM.CustomAxis, Mode=OneWay}" 
-                                                   IsRendering="{x:Bind surf3dVM.IsAxisShow, Mode=OneWay}"
-                                                   Color="Blue"/>
+                                                IsRendering="{x:Bind surf3dVM.IsAxisShow, Mode=OneWay}"
+                                                Color="Blue"/>
                     </helix:TopMostGroup3D>
                 </helix:Viewport3DX>
-                
+
                 <Button Click="click_startBtn"
                         Width="42"
                         Height="42"
@@ -296,6 +296,13 @@
                          Title="串口错误"
                          Message="未找到串口"
                          IsClosable="False" />
+                <Slider x:Name="slider_heatmap" 
+                        Grid.Column="1"
+                        Grid.Row="1"
+                        Width="400" 
+                        Visibility="Collapsed"
+                        ThumbToolTipValueConverter="{x:Bind sliderConverter}"
+                        ValueChanged="slider_heatmap_ValueChanged" />
                 <Grid Grid.Row="0"
                       Grid.Column="2"
                       Margin="0 24 24 24">
