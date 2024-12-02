@@ -98,6 +98,8 @@ internal static class HeatMap_pixelHelper
         Colors.DarkRed,
     ];
     public static ushort range = 4095;
+    public static uint row = 32;
+    public static uint col = 32;
 
     public static Color GetColor(ushort adcValue)
     {

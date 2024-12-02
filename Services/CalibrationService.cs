@@ -16,7 +16,7 @@ namespace array_sensor.Services
     {
         private StorageFile _calibrationFile;
         private Func<double[], double> func;
-        private readonly double[,][] para = new double[MainPage.row,MainPage.col][];
+        private readonly double[,][] para = new double[HeatMap_pixelHelper.row, HeatMap_pixelHelper.col][];
 
         public StorageFile calibrationFile { 
             get => _calibrationFile; 
@@ -94,10 +94,10 @@ namespace array_sensor.Services
 
             public static ushort[,] antilog(List<Label> labels)
             {
-                ushort[,] ret = new ushort[MainPage.row, MainPage.col];
-                for (int i = 0; i < MainPage.row; i++)
-                    for (int j = 0; j < MainPage.col; j++)
-                        ret[i, j] = (ushort)(Math.Pow(10, labels[i * MainPage.col + j].label[0]) - 1);
+                ushort[,] ret = new ushort[HeatMap_pixelHelper.row, HeatMap_pixelHelper.col];
+                for (int i = 0; i < HeatMap_pixelHelper.row; i++)
+                    for (int j = 0; j < HeatMap_pixelHelper.col; j++)
+                        ret[i, j] = (ushort)(Math.Pow(10, labels[(int)(i * HeatMap_pixelHelper.col + j)].label[0]) - 1);
                 return ret;
             }
         }

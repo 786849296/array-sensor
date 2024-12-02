@@ -112,13 +112,38 @@
                             <FontIcon Glyph="&#xE90F;" />
                         </PivotItem.Header>
                         <StackPanel Orientation="Vertical" Padding="12 24 12 24">
+                            <StackPanel Orientation="Horizontal" Margin="12 0 12 12">
+                                <ComboBox x:Name="cb_row"
+                                          Header="行"
+                                          IsEditable="True"
+                                          SelectedIndex="0"
+                                          HeaderTemplate="{StaticResource headerFont}"
+                                          SelectionChanged="rawColCB_SelectionChanged">
+                                    <x:Int32>32</x:Int32>
+                                    <x:Int32>20</x:Int32>
+                                    <x:Int32>16</x:Int32>
+                                    <x:Int32>6</x:Int32>
+                                </ComboBox>
+                                <ComboBox x:Name="cb_col"
+                                          Header="列"
+                                          IsEditable="True"
+                                          SelectedIndex="0"
+                                          HeaderTemplate="{StaticResource headerFont}"
+                                          SelectionChanged="rawColCB_SelectionChanged">
+                                    <x:Int32>32</x:Int32>
+                                    <x:Int32>20</x:Int32>
+                                    <x:Int32>16</x:Int32>
+                                    <x:Int32>6</x:Int32>
+                                </ComboBox>
+                            </StackPanel>
+                            <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
                             <ToggleSwitch x:Name="ts_imageCollect" 
                                           Header="连续采集图像" 
                                           OffContent=""
                                           IsOn="False" 
                                           Toggled="toggle_imageCollectSw" 
                                           HeaderTemplate="{StaticResource headerFont}"
-                                          Margin="12 0 12 0"/>
+                                          Margin="12 12 12 0"/>
                             <Border Height="1" Width="250" BorderThickness="2" BorderBrush="Black" />
                             <ComboBox IsEditable="True"
                                       SelectedIndex="0"
@@ -216,8 +241,8 @@
                           VerticalAlignment="Center" >
                     <GridView.ItemTemplate>
                         <DataTemplate x:DataType="local:HeatMap_pixel">
-                            <Rectangle Width="20" 
-                                    Height="20" 
+                            <Rectangle Width="100" 
+                                    Height="100" 
                                     Margin="0 0 0 0">
                                 <Rectangle.Fill>
                                     <SolidColorBrush Color="{x:Bind local:HeatMap_pixelHelper.GetColor(adcValue), Mode=OneWay}" />
@@ -227,10 +252,12 @@
                     </GridView.ItemTemplate>
                     <GridView.ItemContainerStyle>
                         <Style TargetType="GridViewItem">
-                            <Setter Property="Margin" Value="0 0 0 0" />
+                            <Setter Property="Margin" Value="0 0 1 1" />
                             <Setter Property="Padding" Value="0 0 0 0" />
-                            <Setter Property="MinHeight" Value="21" />
-                            <Setter Property="MinWidth" Value="21" />
+                            <Setter Property="MinHeight" Value="20" />
+                            <Setter Property="MinWidth" Value="20" />
+                            <Setter Property="MaxHeight" Value="20" />
+                            <Setter Property="MaxWidth" Value="20" />
                         </Style>
                     </GridView.ItemContainerStyle>
                     <GridView.ItemsPanel>
@@ -311,7 +338,7 @@
                         <RowDefinition Height="*" />
                         <RowDefinition Height="16" />
                     </Grid.RowDefinitions>
-                    <TextBlock Text="{x:Bind local:HeatMap_pixelHelper.range, Mode=OneWay}" 
+                    <TextBlock Text="{x:Bind local:HeatMap_pixelHelper.range}" 
                                x:Name="legendRange"
                                Grid.Row="0"
                                HorizontalAlignment="Center" />

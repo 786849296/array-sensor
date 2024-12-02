@@ -17,16 +17,11 @@ using OpenCvSharp;
 using array_sensor.Core.Services;
 using SharpDX;
 using System.Diagnostics;
-using System.Data.SqlTypes;
-using System.Reflection.PortableExecutable;
 
 namespace array_sensor.Views;
 
 public sealed partial class MainPage : Page
 {
-    public const ushort row = 32;
-    public const ushort col = 32;
-
     public SerialDevice com;
     public string comID;
     public DataReader readerCom;
@@ -57,10 +52,6 @@ public sealed partial class MainPage : Page
         ViewModel = App.GetService<MainViewModel>();
         surf3dVM = App.GetService<Surf3dVM>();
         InitializeComponent();
-
-        for (int i = 0; i < row; i++)
-            for (int j = 0; j < col; j++)
-                heatmap.Add(new HeatMap_pixel(i, j));
 
         DeviceWatcher deviceWatcher = DeviceInformation.CreateWatcher(SerialDevice.GetDeviceSelector());
         deviceWatcher.Added += (dw, info) =>
@@ -93,17 +84,17 @@ public sealed partial class MainPage : Page
         if (calibration != null)
             heatmapValue = calibration.calibrate(heatmapValue);
         var size = Convert.ToInt32(combobox_gaussKernelSize.SelectedValue);
-        Mat mat = Mat.FromPixelData(row, col, MatType.CV_16U, heatmapValue);
+        Mat mat = Mat.FromPixelData((int)HeatMap_pixelHelper.row, (int)HeatMap_pixelHelper.col, MatType.CV_16U, heatmapValue);
         Cv2.GaussianBlur(mat, mat, new OpenCvSharp.Size(size, size), 0);
         if (grid_heatmap.Visibility == Visibility.Visible)
-            for (int i = 0; i < row; i++)
-                for (int j = 0; j < col; j++)
-                    heatmap[i * col + j].adcValue = mat.At<ushort>(i, j);
+            for (int i = 0; i < HeatMap_pixelHelper.row; i++)
+                for (int j = 0; j < HeatMap_pixelHelper.col; j++)
+                    heatmap[(int)(i * HeatMap_pixelHelper.col + j)].adcValue = mat.At<ushort>(i, j);
         else
         {
-            Vector3[,] points = new Vector3[row, col];
-            for (int i = 0; i < row; i++)
-                for (int j = 0; j < col; j++)
+            Vector3[,] points = new Vector3[HeatMap_pixelHelper.row, HeatMap_pixelHelper.col];
+            for (int i = 0; i < HeatMap_pixelHelper.row; i++)
+                for (int j = 0; j < HeatMap_pixelHelper.col; j++)
                     points[i, j] = new Vector3(i, j, mat.At<ushort>(i, j) / Surf3dVM.zZoom);
             surf3dVM.updateSurf(points);
             Debug.WriteLine(heatmap3D.FrameRate);
@@ -124,9 +115,12 @@ public sealed partial class MainPage : Page
     {
         if (viewModel_Switch.isStartIcon && combobox_com.SelectedItem != null)
         {
-            try {
+            try
+            {
                 com = await SerialDevice.FromIdAsync((combobox_com.SelectedItem as DeviceInformation).Id);
-            } catch (Exception error) {
+            }
+            catch (Exception error)
+            {
                 info_error.IsOpen = true;
                 info_error.Message = error.ToString();
                 return;
@@ -145,6 +139,9 @@ public sealed partial class MainPage : Page
             info_error.IsOpen = false;
             viewModel_Switch.isStartIcon = false;
             slider_heatmap.Visibility = Visibility.Collapsed;
+            slider_heatmap.IsEnabled = false;
+            cb_col.IsEnabled = false;
+            cb_row.IsEnabled = false;
 
             thread_serialCollect.DispatcherQueue.TryEnqueue(async () =>
             {
@@ -160,38 +157,41 @@ public sealed partial class MainPage : Page
                     while (true)
                     {
                         if (readerCom.UnconsumedBufferLength < 2)
-                            await readerCom.LoadAsync(row * col * 2 + 2);
+                            await readerCom.LoadAsync(HeatMap_pixelHelper.row * HeatMap_pixelHelper.col * 2 + 2);
                         if (readerCom.ReadByte() == 0xff)
                             if (readerCom.ReadByte() == 0xff)
                             {
-                                if (readerCom.UnconsumedBufferLength < row * col * 2)
-                                    await readerCom.LoadAsync(row * col * 2 - readerCom.UnconsumedBufferLength);
+                                if (readerCom.UnconsumedBufferLength < HeatMap_pixelHelper.row * HeatMap_pixelHelper.col * 2)
+                                    await readerCom.LoadAsync(HeatMap_pixelHelper.row * HeatMap_pixelHelper.col * 2 - readerCom.UnconsumedBufferLength);
                                 break;
                             }
                     }
-                    ushort[,] heatmapValue = new ushort[row, col];
-                    for (int i = 0; i < row; i++)
-                        for (int j = 0; j < col; j++)
+                    ushort[,] heatmapValue = new ushort[HeatMap_pixelHelper.row, HeatMap_pixelHelper.col];
+                    for (int i = 0; i < HeatMap_pixelHelper.row; i++)
+                        for (int j = 0; j < HeatMap_pixelHelper.col; j++)
                             heatmapValue[i, j] = readerCom.ReadUInt16();
-                    this.DispatcherQueue.TryEnqueue(() => {
-                        if (folder != null)
-                        {
-                            string fileName = DateTime.Now.ToString("yyyy-MM-dd HH.mm.ss.fff") + ".csv";
-                            using (var writer = new StreamWriter(System.IO.Path.Combine(folder.Path, fileName)))
-                                for (int i = 0; i < row; i++)
-                                {
-                                    for (int j = 0; j < col; j++)
-                                        writer.Write(heatmapValue[i, j] + ",");
-                                    writer.Write('\n');
-                                }
-                        }
-                        heatMapValue2UI(heatmapValue);
-                    });
+                    if (folder != null)
+                    {
+                        string fileName = DateTime.Now.ToString("yyyy-MM-dd HH.mm.ss.fff") + ".csv";
+                        using (var writer = new StreamWriter(System.IO.Path.Combine(folder.Path, fileName)))
+                            for (int i = 0; i < HeatMap_pixelHelper.row; i++)
+                            {
+                                for (int j = 0; j < HeatMap_pixelHelper.col; j++)
+                                    writer.Write(heatmapValue[i, j] + ",");
+                                writer.Write('\n');
+                            }
+                    }
+                    this.DispatcherQueue.TryEnqueue(() => heatMapValue2UI(heatmapValue));
                 }
             });
         }
         else if (!viewModel_Switch.isStartIcon)
+        {
             viewModel_Switch.isStartIcon = true;
+            slider_heatmap.IsEnabled = true;
+            cb_col.IsEnabled = true;
+            cb_row.IsEnabled = true;
+        }
     }
 
     private async void toggle_imageCollectSw(object sender, RoutedEventArgs e)
@@ -264,11 +264,11 @@ public sealed partial class MainPage : Page
             using (var reader = new StreamReader(sliderConverter.dataCsv[0]))
             {
                 string[] colString;
-                ushort[,] heatmapValue = new ushort[row, col];
-                for (int i = 0; i < row; i++)
+                ushort[,] heatmapValue = new ushort[HeatMap_pixelHelper.row, HeatMap_pixelHelper.col];
+                for (int i = 0; i < HeatMap_pixelHelper.row; i++)
                 {
                     colString = reader.ReadLine().Split(',');
-                    for (int j = 0; j < col; j++)
+                    for (int j = 0; j < HeatMap_pixelHelper.col; j++)
                         heatmapValue[i, j] = Convert.ToUInt16(colString[j]);
                 }
                 heatMapValue2UI(heatmapValue);
@@ -319,14 +319,43 @@ public sealed partial class MainPage : Page
         using (var reader = new StreamReader(sliderConverter.dataCsv[index]))
         {
             string[] colString;
-            ushort[,] heatmapValue = new ushort[row, col];
-            for (int i = 0; i < row; i++)
+            ushort[,] heatmapValue = new ushort[HeatMap_pixelHelper.row, HeatMap_pixelHelper.col];
+            for (int i = 0; i < HeatMap_pixelHelper.row; i++)
             {
                 colString = reader.ReadLine().Split(',');
-                for (int j = 0; j < col; j++)
+                for (int j = 0; j < HeatMap_pixelHelper.col; j++)
                     heatmapValue[i, j] = Convert.ToUInt16(colString[j]);
             }
             heatMapValue2UI(heatmapValue);
         }
+    }
+
+    private void rawColCB_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (cb_row == null || cb_col == null)
+            return;
+        HeatMap_pixelHelper.row = Convert.ToUInt32(cb_row.SelectedValue);
+        HeatMap_pixelHelper.col = Convert.ToUInt32(cb_col.SelectedValue);
+        if (heatmap.Count != HeatMap_pixelHelper.row * HeatMap_pixelHelper.col)
+        {
+            heatmap.Clear();
+            for (int i = 0; i < HeatMap_pixelHelper.row; i++)
+                for (int j = 0; j < HeatMap_pixelHelper.col; j++)
+                    heatmap.Add(new HeatMap_pixel(i, j));
+        }
+        if (grid_heatmap == null)
+            return;
+        var gridHeight = (grid_heatmap.Parent as Grid).RowDefinitions[0].ActualHeight;
+        var gridWidth = (grid_heatmap.Parent as Grid).ColumnDefinitions[1].ActualWidth;
+        var size = Math.Min(gridHeight / (HeatMap_pixelHelper.row + 1), gridWidth / (HeatMap_pixelHelper.col + 1));
+        var style = new Style(typeof(GridViewItem));
+        style.Setters.Add(new Setter(GridViewItem.MaxHeightProperty, size));
+        style.Setters.Add(new Setter(GridViewItem.MaxWidthProperty, size));
+        style.Setters.Add(new Setter(GridViewItem.MinHeightProperty, size));
+        style.Setters.Add(new Setter(GridViewItem.MinWidthProperty, size));
+        style.Setters.Add(new Setter(GridViewItem.MarginProperty, new Thickness(0, 0, 1, 1)));
+        style.Setters.Add(new Setter(GridViewItem.PaddingProperty, new Thickness(0)));
+        grid_heatmap.ItemContainerStyle = style;
+        (grid_heatmap.ItemsPanelRoot as ItemsWrapGrid).MaximumRowsOrColumns  = (int)HeatMap_pixelHelper.col;
     }
 }
